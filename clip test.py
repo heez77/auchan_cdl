@@ -1,12 +1,13 @@
 import torch
 import clip
 from PIL import Image
+import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-image = preprocess(Image.open("C:/Users/Tijoxa/Desktop/code/Auchan/data clip/paris.png")).unsqueeze(0).to(device)
-text = clip.tokenize(["a diagram", "a dog", "a cat"]).to(device)
+image = preprocess(Image.open(os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO\\boucherie_5.png")).unsqueeze(0).to(device)
+text = clip.tokenize(["it's' bio", "it's not bio'"]).to(device)
 
 with torch.no_grad():
     image_features = model.encode_image(image)
