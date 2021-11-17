@@ -1,2 +1,3 @@
 gitignore/
 flickr8k.zip
+clip_trainable/__pycache__/

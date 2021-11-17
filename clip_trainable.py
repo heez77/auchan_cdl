@@ -79,6 +79,7 @@ class AvgMeter:
         text = f"{self.name}: {self.avg:.4f}"
         return text
 
+
 def get_lr(optimizer):
     for param_group in optimizer.param_groups:
         return param_group["lr"]
@@ -113,7 +114,6 @@ class CLIPDataset(torch.utils.data.Dataset):
 
         return item
 
-
     def __len__(self):
         return len(self.captions)
 
@@ -139,7 +139,6 @@ class ImageEncoder(nn.Module):
     """
     Encode images to a fixed size vector
     """
-
     def __init__(
         self, model_name=CFG.model_name, pretrained=CFG.pretrained, trainable=CFG.trainable
     ):
@@ -316,6 +315,7 @@ def valid_epoch(model, valid_loader):
         tqdm_object.set_postfix(valid_loss=loss_meter.avg)
     return loss_meter
 
+
 def main():
     train_df, valid_df = make_train_valid_dfs()
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
@@ -375,6 +375,7 @@ def get_image_embeddings(valid_df, model_path):
 
 _, valid_df = make_train_valid_dfs()
 model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
+
 
 def find_matches(model, image_embeddings, query, image_filenames, n=9):
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
