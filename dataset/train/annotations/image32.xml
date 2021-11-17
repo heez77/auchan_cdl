@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>logoab_eurofeuille_biologique.png</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\logoab_eurofeuille_biologique.png</path>
+	<folder>images</folder>
+	<filename>image32.png</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image32.png</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -18,9 +18,9 @@
 		<difficult>0</difficult>
 		<bndbox>
 			<xmin>5</xmin>
-			<ymin>53</ymin>
+			<ymin>54</ymin>
 			<xmax>351</xmax>
-			<ymax>535</ymax>
+			<ymax>536</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -30,9 +30,9 @@
 		<difficult>0</difficult>
 		<bndbox>
 			<xmin>366</xmin>
-			<ymin>47</ymin>
-			<xmax>1102</xmax>
-			<ymax>536</ymax>
+			<ymin>48</ymin>
+			<xmax>1103</xmax>
+			<ymax>537</ymax>
 		</bndbox>
 	</object>
 </annotation>

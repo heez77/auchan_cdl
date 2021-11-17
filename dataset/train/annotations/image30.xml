@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>labels-marques-agriculture-biologique-ab-eurofeuille.jpg</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\labels-marques-agriculture-biologique-ab-eurofeuille.jpg</path>
+	<folder>images</folder>
+	<filename>image30.jpg</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image30.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -17,10 +17,10 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>260</xmin>
+			<xmin>261</xmin>
 			<ymin>54</ymin>
 			<xmax>535</xmax>
-			<ymax>438</ymax>
+			<ymax>437</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -29,10 +29,10 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>651</xmin>
-			<ymin>52</ymin>
+			<xmin>650</xmin>
+			<ymin>53</ymin>
 			<xmax>1047</xmax>
-			<ymax>316</ymax>
+			<ymax>317</ymax>
 		</bndbox>
 	</object>
 </annotation>

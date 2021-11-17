@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>ab-et-bio-europe-logo-400.jpg</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\ab-et-bio-europe-logo-400.jpg</path>
+	<folder>images</folder>
+	<filename>image4.jpg</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image4.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -17,10 +17,10 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>97</xmin>
-			<ymin>276</ymin>
+			<xmin>98</xmin>
+			<ymin>277</ymin>
 			<xmax>303</xmax>
-			<ymax>537</ymax>
+			<ymax>535</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -29,8 +29,8 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>6</xmin>
-			<ymin>11</ymin>
+			<xmin>7</xmin>
+			<ymin>12</ymin>
 			<xmax>392</xmax>
 			<ymax>268</ymax>
 		</bndbox>

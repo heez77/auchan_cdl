@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>logoeuropeenpantoneAB.jpg</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\logoeuropeenpantoneAB.jpg</path>
+	<folder>images</folder>
+	<filename>image33.jpg</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image33.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>

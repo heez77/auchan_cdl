@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>AnyConv.com__téléchargement (6).jpg</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\AnyConv.com__téléchargement (6).jpg</path>
+	<folder>images</folder>
+	<filename>image10.jpg</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image10.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -12,15 +12,15 @@
 	</size>
 	<segmented>0</segmented>
 	<object>
-		<name>Logo AB</name>
+		<name>Logo BIO</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>115</xmin>
-			<ymin>153</ymin>
-			<xmax>127</xmax>
-			<ymax>169</ymax>
+			<xmin>69</xmin>
+			<ymin>58</ymin>
+			<xmax>121</xmax>
+			<ymax>94</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -33,6 +33,18 @@
 			<ymin>152</ymin>
 			<xmax>114</xmax>
 			<ymax>163</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Logo AB</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>116</xmin>
+			<ymin>153</ymin>
+			<xmax>126</xmax>
+			<ymax>170</ymax>
 		</bndbox>
 	</object>
 </annotation>

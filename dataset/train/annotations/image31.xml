@@ -1,7 +1,7 @@
 <annotation>
-	<folder>collectedimages</folder>
-	<filename>Le-logo-AB-et-l-Eurofeuille-de-l-Union-europeenne_original_backup.jpg</filename>
-	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\Le-logo-AB-et-l-Eurofeuille-de-l-Union-europeenne_original_backup.jpg</path>
+	<folder>images</folder>
+	<filename>image31.jpg</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\auchan_cdl\dataset\train\images\image31.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -17,7 +17,7 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>287</xmin>
+			<xmin>288</xmin>
 			<ymin>30</ymin>
 			<xmax>485</xmax>
 			<ymax>162</ymax>
@@ -32,7 +32,7 @@
 			<xmin>143</xmin>
 			<ymin>16</ymin>
 			<xmax>257</xmax>
-			<ymax>176</ymax>
+			<ymax>175</ymax>
 		</bndbox>
 	</object>
 </annotation>
