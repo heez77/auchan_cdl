@@ -343,7 +343,7 @@ def main():
     for epoch in range(CFG.epochs):
         print(f"Epoch: {epoch + 1}")
         model.train()
-        train_loss = train_epoch(model, train_loader, optimizer, lr_scheduler, step)
+        train_loss = train_epoch(model, train_loader, optimizer, lr_scheduler, step)  # AttributeError: Can't get attribute 'CLIPDataset' on <module '__main__' (built-in)>
         model.eval()
         with torch.no_grad():
             valid_loss = valid_epoch(model, valid_loader)
