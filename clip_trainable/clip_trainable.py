@@ -118,6 +118,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         return len(self.captions)
 
 
+
 def get_transforms(mode="train"):
     if mode == "train":
         return A.Compose(
@@ -315,6 +316,7 @@ def valid_epoch(model, valid_loader):
 
         tqdm_object.set_postfix(valid_loss=loss_meter.avg)
     return loss_meter
+
 
 def main():
     train_df, valid_df = make_train_valid_dfs()
