@@ -1,0 +1,26 @@
+<annotation>
+	<folder>collectedimages</folder>
+	<filename>AB_cert_BW.png</filename>
+	<path>C:\Users\geyma\Documents\Centrale Digital Lab\Projet Metigate - Fauchelevent\Tensorflow Object Detection\TFODCourse\Tensorflow\workspace\images\collectedimages\AB_cert_BW.png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1833</width>
+		<height>2550</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Logo AB</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>56</xmin>
+			<ymin>56</ymin>
+			<xmax>1787</xmax>
+			<ymax>2487</ymax>
+		</bndbox>
+	</object>
+</annotation>
