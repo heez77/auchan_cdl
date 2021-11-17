@@ -17,49 +17,9 @@ import timm
 from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 
 ##
-# !pip install kaggle --upgrade
-# os.environ['KAGGLE_USERNAME'] = "timothemesnard"
-# os.environ['KAGGLE_KEY'] = "67f5f0761e3a5ebd8dc920f35b570e37"
-
-##
-# if dataset == "8k":
-#   df = pd.read_csv("captions.txt")
-#   df['id'] = [id_ for id_ in range(df.shape[0] // 5) for _ in range(5)]
-#   df.to_csv("captions.csv", index=False)
-#   df = pd.read_csv("captions.csv")
-#   image_path = "/content/Images"
-#   captions_path = "/content"
-# elif dataset == "30k":
-#   df = pd.read_csv("/content/flickr30k_images/results.csv", delimiter="|")
-#   df.columns = ['image', 'caption_number', 'caption']
-#   df['caption'] = df['caption'].str.lstrip()
-#   df['caption_number'] = df['caption_number'].str.lstrip()
-#   df.loc[19999, 'caption_number'] = "4"
-#   df.loc[19999, 'caption'] = "A dog runs across the grass ."
-#   ids = [id_ for id_ in range(len(df) // 5) for _ in range(5)]
-#   df['id'] = ids
-#   df.to_csv("captions.csv", index=False)
-#   image_path = "/content/flickr30k_images/flickr30k_images"
-  # captions_path = "/content"
-
-list_directories = os.listdir(os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO LABEL")
-# text = clip.tokenize(list_directories).to(device)
-
-image_path = []
-captions = []
-
-for folder in list_directories:
-    for file in os.listdir(os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO LABEL\\" + folder):
-        image_path += [file]
-        captions += [folder]
-
-# df.head()
-
-##
 class CFG:
     debug = False
-    image_path = image_path
-    captions_path = captions_path
+    path = os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO LABEL\\"
     batch_size = 32
     num_workers = 2
     head_lr = 1e-3
@@ -89,6 +49,17 @@ class CFG:
     num_projection_layers = 1
     projection_dim = 256
     dropout = 0.1
+
+##
+list_directories = os.listdir(CFG.path)
+
+image_filenames = []
+captions = []
+
+for folder in list_directories:
+    for file in os.listdir(CFG.path + folder):
+        image_filenames += [file]
+        captions += [folder]
 
 ##
 class AvgMeter:
@@ -121,7 +92,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         file names
         """
 
-        self.image_filenames = image_filenames
+        self.image_filenames = list(image_filenames)
         self.captions = list(captions)
         self.encoded_captions = tokenizer(
             list(captions), padding=True, truncation=True, max_length=CFG.max_length
@@ -134,7 +105,7 @@ class CLIPDataset(torch.utils.data.Dataset):
             for key, values in self.encoded_captions.items()
         }
 
-        image = cv2.imread(f"{CFG.image_path}/{self.image_filenames[idx]}")
+        image = cv2.imread(CFG.path + captions[idx] + "\\" + self.image_filenames[idx])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transforms(image=image)['image']
         item['image'] = torch.tensor(image).permute(2, 0, 1).float()
@@ -282,7 +253,9 @@ def cross_entropy(preds, targets, reduction='none'):
 
 ##
 def make_train_valid_dfs():
-    dataframe = pd.read_csv(f"{CFG.captions_path}/captions.csv")
+    dataframe = pd.DataFrame(image_filenames, columns=["image"])
+    dataframe["id"] = [id_ for id_ in range(dataframe.shape[0])]
+    dataframe["caption"] = captions
     max_id = dataframe["id"].max() + 1 if not CFG.debug else 100
     image_ids = np.arange(0, max_id)
     np.random.seed(42)
