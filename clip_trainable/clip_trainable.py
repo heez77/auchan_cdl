@@ -91,7 +91,6 @@ class CLIPDataset(torch.utils.data.Dataset):
         multiple captions for each image, the image_filenames must have repetitive
         file names
         """
-
         self.image_filenames = list(image_filenames)
         self.captions = list(captions)
         self.encoded_captions = tokenizer(
@@ -113,10 +112,8 @@ class CLIPDataset(torch.utils.data.Dataset):
 
         return item
 
-
     def __len__(self):
         return len(self.captions)
-
 
 
 def get_transforms(mode="train"):
@@ -140,7 +137,6 @@ class ImageEncoder(nn.Module):
     """
     Encode images to a fixed size vector
     """
-
     def __init__(
         self, model_name=CFG.model_name, pretrained=CFG.pretrained, trainable=CFG.trainable
     ):
@@ -356,9 +352,6 @@ def main():
 
         lr_scheduler.step(valid_loss.avg)
 
-## main()
-main()
-
 ##
 def get_image_embeddings(valid_df, model_path):
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
@@ -376,8 +369,6 @@ def get_image_embeddings(valid_df, model_path):
             valid_image_embeddings.append(image_embeddings)
     return model, torch.cat(valid_image_embeddings)
 
-_, valid_df = make_train_valid_dfs()
-model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
 
 def find_matches(model, image_embeddings, query, image_filenames, n=9):
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
@@ -408,8 +399,13 @@ def find_matches(model, image_embeddings, query, image_filenames, n=9):
 
     plt.show()
 
-find_matches(model,
-             image_embeddings,
-             query="dogs on the grass",
-             image_filenames=valid_df['image'].values,
-             n=9)
+## main
+if __name__ == '__main__':
+    main()
+    _, valid_df = make_train_valid_dfs()
+    model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
+    find_matches(model,
+                 image_embeddings,
+                 query="Lait",
+                 image_filenames=valid_df['image'].values,
+                 n=3)
