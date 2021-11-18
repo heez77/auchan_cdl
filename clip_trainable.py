@@ -125,7 +125,7 @@ def main():
     valid_loader = build_loaders(valid_df, tokenizer, mode="valid")
 
 
-    model = torch.load(os.path.join(os.path.dirname(os.path.dirname(CFG.path)), "best.pt"))
+    model = torch.load(os.path.join(os.path.dirname(os.path.dirname(CFG.path)), "best.pt"))  # load the already trained model
     """
     model = CLIPModel().to(CFG.device)
     params = [
