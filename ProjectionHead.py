@@ -1,5 +1,6 @@
-import torch
-from torch import nn
+import torch.nn as nn
+
+from CFG import CFG
 
 class ProjectionHead(nn.Module):
     def __init__(
