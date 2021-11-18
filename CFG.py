@@ -4,8 +4,8 @@ import torch
 class CFG:
     debug = False
     path = os.path.join(os.getcwd(), "gitignore", "NON BIO HD LABEL")
-    batch_size = 32
-    num_workers = 0
+    batch_size = 2
+    num_workers = 4
     head_lr = 1e-3
     image_encoder_lr = 1e-4
     text_encoder_lr = 1e-5

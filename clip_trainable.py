@@ -8,6 +8,7 @@ from tqdm.autonotebook import tqdm
 import albumentations as A
 import matplotlib.pyplot as plt
 import torch
+import torch.nn.functionnal as F
 from transformers import DistilBertTokenizer
 
 from CFG import CFG
@@ -47,15 +48,6 @@ def get_transforms(mode="train"):
                 A.Normalize(max_pixel_value=255.0, always_apply=True),
             ]
         )
-
-
-def cross_entropy(preds, targets, reduction='none'):
-    log_softmax = nn.LogSoftmax(dim=-1)
-    loss = (-targets * log_softmax(preds)).sum(1)
-    if reduction == "none":
-        return loss
-    elif reduction == "mean":
-        return loss.mean()
 
 
 def make_train_valid_dfs():

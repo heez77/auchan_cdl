@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from CFG import CFG
 from Encoders import ImageEncoder, TextEncoder
 from ProjectionHead import ProjectionHead
+from cross_entropy import cross_entropy
 
 class CLIPModel(nn.Module):
     def __init__(
