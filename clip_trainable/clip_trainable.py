@@ -19,7 +19,7 @@ from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 ##
 class CFG:
     debug = False
-    path = os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO LABEL\\"
+    path = os.path.join(os.getcwd(), "Documents", "GitHub", "auchan_cdl", "gitignore", "NON BIO LABEL")
     batch_size = 32
     num_workers = 2
     head_lr = 1e-3
@@ -57,7 +57,7 @@ image_filenames = []
 captions = []
 
 for folder in list_directories:
-    for file in os.listdir(CFG.path + folder):
+    for file in os.listdir(os.path.join(CFG.path, folder)):
         image_filenames += [file]
         captions += [folder]
 
