@@ -19,31 +19,30 @@ from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 ##
 class CFG:
     debug = False
-    path = os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO LABEL\\"
+    path = r'C:\Users\jjjer\Desktop\JEREMY\CENTRALE DIGITAL LAB\PROJET\PROJET 2\AUCHAN\IMAGES\NON BIO HD LABEL\\'
     batch_size = 32
-    num_workers = 2
+    num_workers = 0
     head_lr = 1e-3
     image_encoder_lr = 1e-4
     text_encoder_lr = 1e-5
     weight_decay = 1e-3
     patience = 1
     factor = 0.8
-    epochs = 4
+    epochs = 10
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     model_name = 'resnet50'
     image_embedding = 2048
     text_encoder_model = "distilbert-base-uncased"
     text_embedding = 768
     text_tokenizer = "distilbert-base-uncased"
-    max_length = 200
+    max_length = 50
 
     pretrained = True # for both image encoder and text encoder
     trainable = True # for both image encoder and text encoder
     temperature = 1.0
 
     # image size
-    size = 224
+    size = 1200
 
     # for projection head; used for both image and text encoders
     num_projection_layers = 1
@@ -105,11 +104,11 @@ class CLIPDataset(torch.utils.data.Dataset):
             for key, values in self.encoded_captions.items()
         }
 
-        image = cv2.imread(CFG.path + captions[idx] + "\\" + self.image_filenames[idx])
+        image = cv2.imread(CFG.path + self.image_filenames[idx][:self.image_filenames[idx].find('_')] + "\\" + self.image_filenames[idx])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transforms(image=image)['image']
         item['image'] = torch.tensor(image).permute(2, 0, 1).float()
-        item['caption'] = self.captions[idx]
+        item['caption'] = self.image_filenames[idx][:self.image_filenames[idx].find('_')]
 
         return item
 
@@ -255,7 +254,7 @@ def cross_entropy(preds, targets, reduction='none'):
 def make_train_valid_dfs():
     dataframe = pd.DataFrame(image_filenames, columns=["image"])
     dataframe["id"] = [id_ for id_ in range(dataframe.shape[0])]
-    dataframe["caption"] = captions
+    dataframe["caption"] = [img[:img.index('_')] for img in image_filenames]
     max_id = dataframe["id"].max() + 1 if not CFG.debug else 100
     image_ids = np.arange(0, max_id)
     np.random.seed(42)
@@ -279,7 +278,8 @@ def build_loaders(dataframe, tokenizer, mode):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=CFG.batch_size,
-        num_workers=CFG.num_workers,
+        num_workers=1,
+
         shuffle=True if mode == "train" else False,
     )
     return dataloader
@@ -356,7 +356,6 @@ def main():
         lr_scheduler.step(valid_loss.avg)
 
 ## main()
-main()
 
 ##
 def get_image_embeddings(valid_df, model_path):
@@ -375,8 +374,7 @@ def get_image_embeddings(valid_df, model_path):
             valid_image_embeddings.append(image_embeddings)
     return model, torch.cat(valid_image_embeddings)
 
-_, valid_df = make_train_valid_dfs()
-model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
+
 
 def find_matches(model, image_embeddings, query, image_filenames, n=9):
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
@@ -398,17 +396,21 @@ def find_matches(model, image_embeddings, query, image_filenames, n=9):
     values, indices = torch.topk(dot_similarity.squeeze(0), n * 5)
     matches = [image_filenames[idx] for idx in indices[::5]]
 
-    _, axes = plt.subplots(3, 3, figsize=(10, 10))
+    _, axes = plt.subplots(3, 1, figsize=(10, 10))
     for match, ax in zip(matches, axes.flatten()):
-        image = cv2.imread(f"{CFG.image_path}/{match}")
+        print(f"{CFG.path}\\"+match[:match.index('_')]+'\\'+match)
+        image = cv2.imread(f"{CFG.path}\\"+match[:match.index('_')]+'\\'+match)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         ax.imshow(image)
         ax.axis("off")
 
     plt.show()
-
-find_matches(model,
-             image_embeddings,
-             query="dogs on the grass",
-             image_filenames=valid_df['image'].values,
-             n=9)
+if __name__ == '__main__':
+    main()
+    _, valid_df = make_train_valid_dfs()
+    model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
+    find_matches(model,
+                 image_embeddings,
+                 query="Lait",
+                 image_filenames=valid_df['image'].values,
+                 n=3)
