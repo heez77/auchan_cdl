@@ -1,5 +1,3 @@
-# timm and transformer must be installed
-
 import os
 import cv2
 import gc
@@ -17,49 +15,12 @@ import timm
 from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 
 ##
-class CFG:
-    debug = False
-    path = os.path.join(os.getcwd(), "Documents", "GitHub", "auchan_cdl", "gitignore", "NON BIO LABEL")
-    batch_size = 32
-    num_workers = 2
-    head_lr = 1e-3
-    image_encoder_lr = 1e-4
-    text_encoder_lr = 1e-5
-    weight_decay = 1e-3
-    patience = 1
-    factor = 0.8
-    epochs = 4
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    model_name = 'resnet50'
-    image_embedding = 2048
-    text_encoder_model = "distilbert-base-uncased"
-    text_embedding = 768
-    text_tokenizer = "distilbert-base-uncased"
-    max_length = 200
-
-    pretrained = True # for both image encoder and text encoder
-    trainable = True # for both image encoder and text encoder
-    temperature = 1.0
-
-    # image size
-    size = 224
-
-    # for projection head; used for both image and text encoders
-    num_projection_layers = 1
-    projection_dim = 256
-    dropout = 0.1
+from CFG import CFG
 
 ##
-list_directories = os.listdir(CFG.path)
+from elements import get_elements
 
-image_filenames = []
-captions = []
-
-for folder in list_directories:
-    for file in os.listdir(os.path.join(CFG.path, folder)):
-        image_filenames += [file]
-        captions += [folder]
+captions, image_filenames = get_elements()
 
 ##
 class AvgMeter:
@@ -84,36 +45,7 @@ def get_lr(optimizer):
         return param_group["lr"]
 
 ##
-class CLIPDataset(torch.utils.data.Dataset):
-    def __init__(self, image_filenames, captions, tokenizer, transforms):
-        """
-        image_filenames and captions must have the same length; so, if there are
-        multiple captions for each image, the image_filenames must have repetitive
-        file names
-        """
-        self.image_filenames = list(image_filenames)
-        self.captions = list(captions)
-        self.encoded_captions = tokenizer(
-            list(captions), padding=True, truncation=True, max_length=CFG.max_length
-        )
-        self.transforms = transforms
-
-    def __getitem__(self, idx):
-        item = {
-            key: torch.tensor(values[idx])
-            for key, values in self.encoded_captions.items()
-        }
-
-        image = cv2.imread(CFG.path + captions[idx] + "\\" + self.image_filenames[idx])
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = self.transforms(image=image)['image']
-        item['image'] = torch.tensor(image).permute(2, 0, 1).float()
-        item['caption'] = self.captions[idx]
-
-        return item
-
-    def __len__(self):
-        return len(self.captions)
+from CLIPDataset import CLIPDataset
 
 
 def get_transforms(mode="train"):
@@ -228,7 +160,7 @@ class CLIPModel(nn.Module):
         )
         texts_loss = cross_entropy(logits, targets, reduction='none')
         images_loss = cross_entropy(logits.T, targets.T, reduction='none')
-        loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
+        loss =  (images_loss + texts_loss) / 2.0  # shape: (batch_size)
         return loss.mean()
 
 
@@ -340,7 +272,7 @@ def main():
     for epoch in range(CFG.epochs):
         print(f"Epoch: {epoch + 1}")
         model.train()
-        train_loss = train_epoch(model, train_loader, optimizer, lr_scheduler, step)  # AttributeError: Can't get attribute 'CLIPDataset' on <module '__main__' (built-in)>
+        train_loss = train_epoch(model, train_loader, optimizer, lr_scheduler, step)
         model.eval()
         with torch.no_grad():
             valid_loss = valid_epoch(model, valid_loader)
