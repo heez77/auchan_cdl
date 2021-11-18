@@ -8,7 +8,7 @@ from tqdm.autonotebook import tqdm
 import albumentations as A
 import matplotlib.pyplot as plt
 import torch
-import torch.nn.functionnal as F
+import torch.nn.functional as F
 from transformers import DistilBertTokenizer
 
 from CFG import CFG
@@ -125,6 +125,8 @@ def main():
     valid_loader = build_loaders(valid_df, tokenizer, mode="valid")
 
 
+    model = torch.load(os.path.join(os.path.dirname(os.path.dirname(CFG.path)), "best.pt"))
+    """
     model = CLIPModel().to(CFG.device)
     params = [
         {"params": model.image_encoder.parameters(), "lr": CFG.image_encoder_lr},
@@ -153,7 +155,7 @@ def main():
             torch.save(model.state_dict(), "best.pt")
             print("Saved Best Model!")
 
-        lr_scheduler.step(valid_loss.avg)
+        lr_scheduler.step(valid_loss.avg)"""
 
 
 def get_image_embeddings(valid_df, model_path):
@@ -195,8 +197,8 @@ def find_matches(model, image_embeddings, query, image_filenames, n=9):
 
     _, axes = plt.subplots(3, 1, figsize=(10, 10))
     for match, ax in zip(matches, axes.flatten()):
-        print(f"{CFG.path}\\"+match[:match.index('_')]+'\\'+match)
-        image = cv2.imread(f"{CFG.path}\\"+match[:match.index('_')]+'\\'+match)
+        print(os.path.join(CFG.path, match[:match.index('_')], match))
+        image = cv2.imread(os.path.join(CFG.path, match[:match.index('_')], match))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         ax.imshow(image)
         ax.axis("off")
@@ -209,7 +211,7 @@ if __name__ == '__main__':
     _, valid_df = make_train_valid_dfs()
     model, image_embeddings = get_image_embeddings(valid_df, "best.pt")
     find_matches(model,
-                 image_embeddings,
-                 query="Lait",
-                 image_filenames=valid_df['image'].values,
-                 n=3)
+                    image_embeddings,
+                    query="Lait",
+                    image_filenames=valid_df['image'].values,
+                    n=3)
