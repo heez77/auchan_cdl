@@ -21,6 +21,7 @@ class CFG:
     text_tokenizer = "distilbert-base-uncased"
     max_length = 50
 
+    train = False
     pretrained = True # for both image encoder and text encoder
     trainable = True # for both image encoder and text encoder
     temperature = 1.0

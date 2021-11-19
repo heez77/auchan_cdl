@@ -3,3 +3,7 @@ __pycache__/
 auchan/
 best.pt
 .vscode/
+.vs/ProjectSettings.json
+.vs/slnx.sqlite
+.vs/VSWorkspaceState.json
+.vs/auchan_cdl/v16/.suo
