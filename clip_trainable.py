@@ -127,7 +127,6 @@ def main():
 
     if (CFG.train == True):
         model = CLIPModel().to(CFG.device)
-        model = nn.DataParallel(model)
         params = [
             {"params": model.image_encoder.parameters(), "lr": CFG.image_encoder_lr},
             {"params": model.text_encoder.parameters(), "lr": CFG.text_encoder_lr},
@@ -140,6 +139,7 @@ def main():
             optimizer, mode="min", patience=CFG.patience, factor=CFG.factor
         )
         step = "epoch"
+        # model = nn.DataParallel(model)
 
         best_loss = float('inf')
         for epoch in range(CFG.epochs):

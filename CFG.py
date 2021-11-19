@@ -12,7 +12,7 @@ class CFG:
     weight_decay = 1e-3
     patience = 1
     factor = 0.8
-    epochs = 10
+    epochs = 50
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_name = 'resnet50'
     image_embedding = 2048
@@ -21,7 +21,7 @@ class CFG:
     text_tokenizer = "distilbert-base-uncased"
     max_length = 50
 
-    train = False
+    train = True
     pretrained = True # for both image encoder and text encoder
     trainable = True # for both image encoder and text encoder
     temperature = 1.0
