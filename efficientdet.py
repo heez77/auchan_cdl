@@ -1,3 +1,5 @@
+!pip install fastcore
+
 from fastcore.dispatch import * 
 import PIL
 import cv2
