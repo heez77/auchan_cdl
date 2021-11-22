@@ -4,7 +4,8 @@ from PIL import Image
 import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model, preprocess = clip.load("ViT-B/32", device=device)
+# model, preprocess = clip.load("ViT-B/32", device=device, download_root=os.getcwd())
+model, preprocess = clip.load(os.path.join(os.getcwd(), "ViT-B-32.pt"), device=device)
 
 image = preprocess(Image.open(os.getcwd() + "\\Documents\\GitHub\\auchan_cdl\\gitignore\\NON BIO\\boucherie_5.png")).unsqueeze(0).to(device)
 text = clip.tokenize(["it's' bio", "it's not bio'"]).to(device)

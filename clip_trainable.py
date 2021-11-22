@@ -12,6 +12,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import DistilBertTokenizer
 
+import clip
+
 from CFG import CFG
 from AvgMeter import AvgMeter
 from CLIPDataset import CLIPDataset
@@ -126,14 +128,16 @@ def main():
     valid_loader = build_loaders(valid_df, tokenizer, mode="valid")
 
     if (CFG.train == True):
-        model = CLIPModel().to(CFG.device)
-        params = [
-            {"params": model.image_encoder.parameters(), "lr": CFG.image_encoder_lr},
-            {"params": model.text_encoder.parameters(), "lr": CFG.text_encoder_lr},
-            {"params": itertools.chain(
-                model.image_projection.parameters(), model.text_projection.parameters()
-            ), "lr": CFG.head_lr, "weight_decay": CFG.weight_decay}
-        ]
+        # model = CLIPModel().to(CFG.device)
+        model = clip.load(os.path.join(os.getcwd(), "clip_archive", "ViT-B-32.pt")).to(CFG.device)
+        # params = [
+        #     {"params": model.image_encoder.parameters(), "lr": CFG.image_encoder_lr},
+        #     {"params": model.text_encoder.parameters(), "lr": CFG.text_encoder_lr},
+        #     {"params": itertools.chain(
+        #         model.image_projection.parameters(), model.text_projection.parameters()
+        #     ), "lr": CFG.head_lr, "weight_decay": CFG.weight_decay}
+        # ]
+        params = model.parameters()
         optimizer = torch.optim.AdamW(params, weight_decay=0.)
         lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", patience=CFG.patience, factor=CFG.factor
@@ -162,8 +166,9 @@ def get_image_embeddings(valid_df, model_path):
     tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
     valid_loader = build_loaders(valid_df, tokenizer, mode="valid")
 
-    model = CLIPModel().to(CFG.device)
-    model.load_state_dict(torch.load(model_path, map_location=CFG.device))
+    # model = CLIPModel().to(CFG.device)
+    model = clip.load(os.path.join(os.getcwd(), "clip_archive", "ViT-B-32.pt")).to(CFG.device)
+    # model.load_state_dict(torch.load(model_path, map_location=CFG.device))
     model.eval()
 
     valid_image_embeddings = []
