@@ -1,15 +1,14 @@
-#"C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\données\\photosMEDIASTEP9657460_0.jpg"
+#"C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\données\\photos\\MEDIASTEP9657460_0.jpg"
 import sys
 import cv2
 import pyocr
 import numpy as np
 from PIL import Image
 import os
-path = os.getcwd()
-print(path)
-os.chdir(os.path.join(os.getcwd(),"gitignore\\données\\photos"))
-image = "MEDIASTEP9657460_0.jpg"
-name = "MEDIASTEP9657460_0"
+
+os.chdir("C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\données\\photos")
+image = "MEDIASTEP57433174_.jpg"
+name = "MEDIASTEP57433174_"
 
 #original
 img = cv2.imread(image)
@@ -33,15 +32,13 @@ cv2.imwrite(f"3_{name}_threshold_{th}.png ",img)
 img = cv2.bitwise_not(img)
 cv2.imwrite(f"4_{name}_bitwise.png ",img)
 
-cv2.imwrite("target.png ",img)
-
 tools = pyocr.get_available_tools()
 if len(tools) == 0:
     print("No OCR tool found")
     sys.exit(1)
 tool = tools[0]
 res = tool.image_to_string(
-    Image.open("target.png ")
-    ,lang="eng")
+    Image.open("MEDIASTEP57433174_.jpg")
+    ,lang="fra")
 
-print(res)
+print('res =',res)
