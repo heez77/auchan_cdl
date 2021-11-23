@@ -7,8 +7,8 @@ from PIL import Image
 import os
 
 os.chdir("C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\données\\photos")
-image = "MEDIASTEP57433174_.jpg"
-name = "MEDIASTEP57433174_"
+image = "MEDIASTEP57466171_.jpg"
+name = "MEDIASTEP57466171_"
 
 #original
 img = cv2.imread(image)
@@ -37,8 +37,12 @@ if len(tools) == 0:
     print("No OCR tool found")
     sys.exit(1)
 tool = tools[0]
-res = tool.image_to_string(
-    Image.open("MEDIASTEP57433174_.jpg")
+print(tool)
+res_fra = tool.image_to_string(
+    Image.open(image)
     ,lang="fra")
-
-print('res =',res)
+res_eng = tool.image_to_string(
+    Image.open(image)
+    ,lang="eng")
+print("res_fra =", res_fra)
+print("res_eng = ", res_eng)
