@@ -44,5 +44,9 @@ res_fra = tool.image_to_string(
 res_eng = tool.image_to_string(
     Image.open(image)
     ,lang="eng")
+res_test = tool.image_to_string(
+    Image.open(image)
+    ,lang="equ")
 print("res_fra =", res_fra)
 print("res_eng = ", res_eng)
+print("res_test = ", res_test)
