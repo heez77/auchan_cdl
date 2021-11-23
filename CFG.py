@@ -3,7 +3,8 @@ import torch
 
 class CFG:
     debug = False
-    path = os.path.join(os.getcwd(), "gitignore", "NON BIO HD LABEL")
+    path = os.path.join(os.getcwd(), "gitignore", "DATASET")
+    csv_path = os.path.join(os.getcwd(), "gitignore", "mouette.csv")
     batch_size = 2
     num_workers = 4
     head_lr = 1e-3
