@@ -5,7 +5,7 @@ import pandas as pd
 
 def download(url: str, root: str):
     os.makedirs(root, exist_ok=True)
-    filename = "{}.jpg".format(url[24:42])
+    filename = "{}.jpg".format((url.split('_0x0')[0]).split("https://media.auchan.fr/")[1])
     download_target = os.path.join(root, filename)
 
     with urllib.request.urlopen(url) as source, open(download_target, "wb") as output:
