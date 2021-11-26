@@ -112,8 +112,9 @@ def OCR(image):
     #     ,lang="eng")
     return(res_fra)
 
-def write_df(all_prediction, df):
-
+def write_df(all_predictions, df, img):
+    ind = df[df['photo_id']==img].index
+    df.at[ind,'words_in_the_image'] = all_predictions
 
 def main():
     fichier = open("C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\liste_francais\\liste_francais.txt", "r")
@@ -134,9 +135,7 @@ def main():
             all_predictions.remove(remove)
         print(all_predictions)
         print(img)
-        ind = df[df['photo_id']==img].index
-        df.at[ind,'words_in_the_image'] = all_predictions
-        df.head()
+        write_df(all_predictions, df, img)
         
 
 if __name__== '__main__':
