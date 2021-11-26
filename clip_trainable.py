@@ -31,6 +31,8 @@ def get_transforms(mode="train"):
             [
                 A.Resize(CFG.size, CFG.size, always_apply=True),
                 A.Normalize(max_pixel_value=255.0, always_apply=True),
+                # A.RandomBrightnessContrast(p=0.2),
+                # A.augmentations.geometric.rotate.RandomRotate90.apply (self, img, factor=3, **params)
             ]
         )
     else:
