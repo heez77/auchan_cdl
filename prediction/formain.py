@@ -3,6 +3,7 @@ import clip
 from PIL import Image
 import os
 from config import CFG
+from camembert import learner
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -19,8 +20,11 @@ def simple_CLIP(image_path, labels):
     max_index = prediction.index(max_value)
     return (labels[max_index], max_value)
 
-def get_dist():
-    return
+def simple_DIST(model, description):
+    with torch.no_grad():
+        model.eval()
+        input_ids, attention_mask = preprocess(reviews)
+        retour = model(input_ids, attention_mask = attention_mask)
 
 def get_clip(image, df_label, niv_tot):
     scores = []
@@ -41,7 +45,7 @@ def get_clip(image, df_label, niv_tot):
 
 def write_csv(df, df_label, threshold_clip, threshold_dist):
     for i in range (len(df)):
-        label_dist, score_dist = get_dist(df.description[i])
+        label_dist, score_dist = simple_DIST(df.description[i])
         label_clip, score_clip = get_clip(df.image[i], df_label, 2)
         if label_dist == label_clip:
             df.result[i] = label_clip
