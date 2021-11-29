@@ -75,14 +75,14 @@ with torch.no_grad():
      last_hidden_states = model(input_ids, attention_mask=attention_mask)
 
 features = last_hidden_states[0][:,0,:].numpy()
-labels = df.temps # A changer
+labels = df_label.niv2
 print(labels)
 
 train_features, test_features, train_labels, test_labels = train_test_split(features, labels)
 
 # Grid search
 parameters = {'C': np.linspace(0.0001, 100, 20)}
-grid_search = GridSearchCV(LogisticRegression(), parameters)
+grid_search = GridSearchCV(LogisticRegression(multi_class='multinomial', solver='lbfgs'), parameters)
 grid_search.fit(train_features, train_labels)
 
 print('best parameters: ', grid_search.best_params_)
