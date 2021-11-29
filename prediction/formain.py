@@ -3,6 +3,7 @@ import clip
 from PIL import Image
 import os
 from config import CFG
+import pandas as pd
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -40,7 +41,7 @@ def get_clip(image, df_label, niv_tot):
     return (labels[-1], score_clip)
 
 def write_csv(df, df_label, threshold_clip, threshold_dist):
-    for i in range (len(df)):
+    for i in range(len(df)):
         label_dist, score_dist = get_dist(df.description[i])
         label_clip, score_clip = get_clip(df.image[i], df_label, 2)
         if label_dist == label_clip:
@@ -53,3 +54,21 @@ def write_csv(df, df_label, threshold_clip, threshold_dist):
             else :
                 # Vérification humaine (API)
                 df.result[i] = 'Need Human Verif'
+
+def performance(df, df_label, threshold_clip, threshold_dist):
+    labels = []
+    for i in range(len(df)):
+        label_dist, score_dist = get_dist(df.description[i])
+        label_clip, score_clip = get_clip(df.image[i], df_label, 2)
+
+        if label_dist == label_clip:
+            labels.append(label_clip)
+
+        else:
+            if score_clip > threshold_clip and score_dist < threshold_dist :
+                labels.append(label_clip)
+            elif score_clip < threshold_clip and score_dist > threshold_dist :
+                labels.append(label_dist)
+            else:
+                labels.append(0)
+    return labels
