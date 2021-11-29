@@ -12,7 +12,10 @@ def simple_CLIP(image_path, labels):
     text = clip.tokenize(labels).to(CFG.device)
     image = preprocess(Image.open(image_path)).unsqueeze(0).to(CFG.device)
     with torch.no_grad():
-        logits_per_image, _ = model(image, text)
+        image_features = model.encode_image(image)
+        text_features = model.encode_text(text)
+
+        logits_per_image, logits_per_text = model(image, text)
         prediction = logits_per_image.softmax(dim=-1).cpu().numpy()
     max_value = max(prediction)
     max_index = prediction.index(max_value)
