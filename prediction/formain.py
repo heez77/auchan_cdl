@@ -2,8 +2,7 @@ import torch
 import clip
 from PIL import Image
 import os
-from config import CFG
-from camembert import learner
+from prediction.config import CFG
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -17,8 +16,9 @@ def simple_CLIP(image_path, labels):
         logits_per_image, logits_per_text = model(image, text)
         prediction = logits_per_image.softmax(dim=-1).cpu().numpy()
     max_value = max(prediction)
-    max_index = prediction.index(max_value)
-    return (labels[max_index], max_value)
+    # max_index = prediction.index(max_value)
+    return (max_value, prediction)
+    # labels[max_index],
 
 def simple_DIST(model, description):
     with torch.no_grad():
@@ -48,7 +48,7 @@ def write_csv(df, df_label, threshold_clip, threshold_dist):
         label_dist, score_dist = simple_DIST(df.description[i])
         label_clip, score_clip = get_clip(df.image[i], df_label, 2)
         if label_dist == label_clip:
-            df.result[i] = label_clip
+            df.result[i] = label_clip 
         else:
             if score_clip > threshold_clip and score_dist < threshold_dist :
                 df.result[i] = label_clip
