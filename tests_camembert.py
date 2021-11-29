@@ -1,4 +1,3 @@
-from os import device_encoding
 import pandas as pd
 import transformers as ppb
 import numpy as np
@@ -8,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from transformers import CamembertTokenizer, CamembertModel
-#from prediction.formain import get_clip
+from prediction.formain import get_clip
 
 #url="https://raw.githubusercontent.com/nlpinfrench/nlpinfrench.github.io/master/source/labeled_data.csv"
 df_1 = pd.read_csv("gitignore/auchan_product_legalInfo_sample.csv", encoding='utf-8')

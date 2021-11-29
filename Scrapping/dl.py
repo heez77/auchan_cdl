@@ -20,7 +20,7 @@ def download(url: str, root: str):
 
     return None
 
-df = pd.read_csv("C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\données auchan\\auchan_product_media_sample.csv")
+df = pd.read_csv("C:/Users/DL/Documents/GitHub/auchan_cdl/gitignore/auchan_product_media_sample.csv")
 
 for url in df['media_url']:
     download(url, "C:\\Users\\geyma\\Documents\\Centrale Digital Lab\\Projet Auchan\\auchan_cdl\\gitignore\\données\\photos")
