@@ -86,4 +86,4 @@ grid_search = GridSearchCV(LogisticRegression(multi_class='multinomial', solver=
 grid_search.fit(train_features, train_labels)
 
 print('best parameters: ', grid_search.best_params_)
-print('best scrores: ', grid_search.best_score_)
+print('best scrore: ', grid_search.best_score_)
