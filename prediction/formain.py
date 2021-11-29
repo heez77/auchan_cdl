@@ -1,5 +1,6 @@
 import torch
 import clip
+from fast_bert.prediction import BertClassificationPredictor
 from PIL import Image
 import os
 from config import CFG
