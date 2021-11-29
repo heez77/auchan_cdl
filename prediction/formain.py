@@ -3,6 +3,7 @@ import clip
 from PIL import Image
 import os
 from prediction.config import CFG
+import numpy as np
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -15,10 +16,9 @@ def simple_CLIP(image_path, labels):
 
         logits_per_image, logits_per_text = model(image, text)
         prediction = logits_per_image.softmax(dim=-1).cpu().numpy()
-    max_value = max(prediction)
-    # max_index = prediction.index(max_value)
-    return (max_value, prediction)
-    # labels[max_index],
+    max_value = max(prediction[0])
+    max_index = np.where(prediction[0] == max_value)
+    return (labels[max_index[0][0]], max_value)
 
 def simple_DIST(model, description):
     with torch.no_grad():
@@ -31,11 +31,12 @@ def get_clip(image, df_label, niv_tot):
     labels = []
     for niveau in range (1, niv_tot+1):
         if niveau == 1:
-            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv1)
+            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv1.tolist())
             scores.append(score_clip)
             labels.append(label_clip)
         else :
-            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label['niv{}'.format(niveau)][df_label['niv{}'.format(niveau-1)] == labels[niveau-1]])
+            index_pre_niv = df_label[df_label['niv{}'.format(niveau-1)]==labels[niveau-1]].index.tolist()
+            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label['niv{}'.format(niveau)][index_pre_niv].tolist())
             scores.append(score_clip)
             labels.append(label_clip)
     score_clip = 1
