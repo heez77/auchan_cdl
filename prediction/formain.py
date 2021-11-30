@@ -18,19 +18,8 @@ def simple_CLIP(image_path, labels):
     return (labels[max_index], max_value)
 
 def get_dist(description, model_name='bert.bin'):
-    DATA_PATH = '/home/jeremy/Documents/GitHub/auchan_cdl/CamemBERT/Data/'
-    MODEL_PATH = os.path.join(CFG.path_models, model_name)
-    labels = pd.read_csv(os.path.join(DATA_PATH, 'labels.csv'), header=None, index_col=False)[0].tolist()
-    predictor = BertClassificationPredictor(
-        model_path=MODEL_PATH,
-        label_path=DATA_PATH,  # location for labels.csv file
-        multi_label=True,
-        model_type='bert',
-        do_lower_case=False,
-        device=None)
-    prediction = predictor.predict(description)
-    return prediction
-
+    return None
+    
 def get_clip(image, df_label, niv_tot):
     scores = []
     labels = []
