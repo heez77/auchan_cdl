@@ -1,3 +1,8 @@
+from os.path import dirname, abspath
+import sys
+root_path = dirname(abspath('text_classification.py'))
+sys.path.append(root_path)
+print(root_path)
 import torch
 import clip
 from PIL import Image
@@ -5,6 +10,9 @@ import os
 from config import CFG
 from fast_bert.prediction import BertClassificationPredictor
 import pandas as pd
+import os
+from CamemBERT.Code.text_classification import text_prepare
+
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -21,8 +29,8 @@ def simple_CLIP(image_path, labels):
     max_index = prediction.index(max_value)
     return (labels[max_index], max_value)
 
-def get_dist(description, model_name='bert.bin'):
-    DATA_PATH = '/home/jeremy/Documents/GitHub/auchan_cdl/CamemBERT/Data/'
+def get_dist(description, model_name='model_BERT'):
+    DATA_PATH = os.path.join(CFG.path_bert,'Data/')
     MODEL_PATH = os.path.join(CFG.path_models, model_name)
     labels = pd.read_csv(os.path.join(DATA_PATH, 'labels.csv'), header=None, index_col=False)[0].tolist()
     predictor = BertClassificationPredictor(
@@ -32,8 +40,8 @@ def get_dist(description, model_name='bert.bin'):
         model_type='bert',
         do_lower_case=False,
         device=None)
-    prediction = predictor.predict(description)
-    return prediction
+    prediction = predictor.predict(text_prepare(description))
+    return prediction[0][0], prediction[0][1]
 
 def get_clip(image, df_label, niv_tot):
     scores = []
@@ -66,3 +74,6 @@ def write_csv(df, df_label, threshold_clip, threshold_dist):
             else :
                 # Vérification humaine (API)
                 df.result[i] = 'Need Human Verif'
+
+prediction = get_dist('chocolat noir madagascar')
+print(prediction)
