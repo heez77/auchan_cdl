@@ -1,6 +1,6 @@
 from os.path import dirname, abspath
 import sys
-root_path = dirname(abspath('text_classification.py'))
+root_path = dirname(dirname(abspath('text_classification.py')))
 sys.path.append(root_path)
 import nltk
 import pandas as pd
