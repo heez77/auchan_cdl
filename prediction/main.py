@@ -1,6 +1,7 @@
 import pandas as pd
-from formain import write_csv
+from formain import write_csv, performance
 from config import CFG
+import numpy as np
 
 def main():
     df = pd.read_csv(CFG.path_dataframe)
