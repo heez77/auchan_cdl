@@ -7,7 +7,7 @@ class CFG:
     path_dataframe = os.path.join(path, "dataframe")
     path_labels = os.path.join(path, "labels")
     path_models = os.path.join(path, "Models")
-    path_bert = os.path.join(path, 'CamemBERT')
+    path_bert = os.path.join(path, 'Training/CamemBERT')
     threshold_clip = 0.8
     threshold_dist = 0.8
     device = "cuda" if torch.cuda.is_available() else "cpu"

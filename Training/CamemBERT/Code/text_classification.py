@@ -1,12 +1,9 @@
 from os.path import dirname, abspath
-import sys
-root_path = dirname(dirname(abspath('text_classification.py')))
-sys.path.append(root_path)
+import sys, os
 import nltk
 import pandas as pd
 import numpy as np
-import re, os
-from get_labels_from_directories import get_labels
+import re
 import torch
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -15,9 +12,11 @@ from fast_bert.learner_cls import BertLearner
 from fast_bert.metrics import accuracy
 import logging
 import unidecode
-from config import CFG
 from pathlib import Path
-
+root_path = dirname(abspath('text_classification.py'))
+sys.path.append(root_path)
+from config import CFG
+from Training.CamemBERT.Code.get_labels_from_directories import get_labels
 final_stopwords_list = nltk.corpus.stopwords.words('english') + nltk.corpus.stopwords.words('french')
 
 
@@ -53,7 +52,7 @@ def preprocessing(df, texte):
         X = data['description_produit'].tolist()
 
     dico = {label:i for i, label in enumerate(labels)}
-
+    imgs = data.index.tolist()
     Y = data.label.tolist()
     Y = [dico[label] for label in Y]
     Y = tf.keras.utils.to_categorical(Y, num_classes=len(dico))
@@ -61,8 +60,8 @@ def preprocessing(df, texte):
     X = [text_prepare(text) for text in X]
     X = np.array(X)
 
-    x, x_test, y, y_test = train_test_split(X,Y,test_size=0.2,train_size=0.8)
-    x_train, x_val, y_train, y_val = train_test_split(x,y,test_size = 0.25,train_size =0.75)
+    x, x_test, y, y_test, img, img_test = train_test_split(X,Y,imgs,test_size=0.2,train_size=0.8)
+    x_train, x_val, y_train, y_val, img_train, img_val = train_test_split(x,y,img,test_size = 0.25,train_size =0.75)
 
     df_lab = pd.DataFrame(columns=['label'])
     df_lab.label = labels
@@ -70,6 +69,10 @@ def preprocessing(df, texte):
     df_train = pd.DataFrame(columns = ['text']+labels)
     df_val = pd.DataFrame(columns = ['text']+labels)
     df_test = pd.DataFrame(columns = ['text']+labels)
+
+    df_img_train = pd.DataFrame(columns=['image'])
+    df_img_val = pd.DataFrame(columns=['image'])
+    df_img_test = pd.DataFrame(columns=['image'])
 
     df_train['text'] = x_train
     df_train[labels] = y_train
@@ -80,9 +83,16 @@ def preprocessing(df, texte):
     df_test['text'] = x_test
     df_test[labels] = y_test
 
+    df_img_train.image = img_train
+    df_img_test.image = img_test
+    df_img_val.image = img_val
+
     df_train.to_csv(os.path.join(CFG.path_bert, 'Data/train.csv'))
     df_val.to_csv(os.path.join(CFG.path_bert,'Data/val.csv'))
     df_test.to_csv(os.path.join(CFG.path_bert,'Data/test.csv'))
+    df_img_train.to_csv(os.path.join(CFG.path_bert, 'Data/img_train.csv'))
+    df_img_val.to_csv(os.path.join(CFG.path_bert, 'Data/img_val.csv'))
+    df_img_test.to_csv(os.path.join(CFG.path_bert, 'Data/img_test.csv'))
     df_lab.to_csv(os.path.join(CFG.path_bert,'Data/labels.csv'), header=False, index=False)
 
 def model():

@@ -2,7 +2,6 @@ from os.path import dirname, abspath
 import sys
 root_path = dirname(abspath('text_classification.py'))
 sys.path.append(root_path)
-print(root_path)
 import torch
 import clip
 from PIL import Image
@@ -11,7 +10,7 @@ from config import CFG
 from fast_bert.prediction import BertClassificationPredictor
 import pandas as pd
 import os
-from CamemBERT.Code.text_classification import text_prepare
+from Training.CamemBERT.Code.text_classification import text_prepare
 
 
 def simple_CLIP(image_path, labels):
@@ -50,7 +49,7 @@ def get_clip(image, df_label, niv_tot):
         if niveau == 1:
             label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv1)
             scores.append(score_clip)
-            labels.append(label_clip)
+            labels.append(label_clip)   
         else :
             label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label['niv{}'.format(niveau)][df_label['niv{}'.format(niveau-1)] == labels[niveau-1]])
             scores.append(score_clip)
@@ -75,5 +74,3 @@ def write_csv(df, df_label, threshold_clip, threshold_dist):
                 # Vérification humaine (API)
                 df.result[i] = 'Need Human Verif'
 
-prediction = get_dist('chocolat noir madagascar')
-print(prediction)
