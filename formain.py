@@ -1,57 +1,70 @@
+from os.path import dirname, abspath
+import sys
+root_path = dirname(abspath('text_classification.py'))
+sys.path.append(root_path)
 import torch
 import clip
 from PIL import Image
 import os
-from prediction.config import CFG
-import numpy as np
 from config import CFG
+from fast_bert.prediction import BertClassificationPredictor
+import pandas as pd
+import os
+from Training.CamemBERT.Code.text_classification import text_prepare
 
-def simple_CLIP(image, labels):
+
+def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
     model, preprocess = clip.load("ViT-B/32", device=CFG.device)
     text = clip.tokenize(labels).to(CFG.device)
-    image = preprocess(Image.open(image)).unsqueeze(0).to(CFG.device)
+    image = preprocess(Image.open(image_path)).unsqueeze(0).to(CFG.device)
     with torch.no_grad():
         image_features = model.encode_image(image)
         text_features = model.encode_text(text)
 
         logits_per_image, logits_per_text = model(image, text)
         prediction = logits_per_image.softmax(dim=-1).cpu().numpy()
-    max_value = max(prediction[0])
-    max_index = np.where(prediction[0] == max_value)
-    return (labels[max_index[0][0]], max_value)
+    max_value = max(prediction)
+    max_index = prediction.index(max_value)
+    return (labels[max_index], max_value)
 
-def simple_DIST(model, description):
-    with torch.no_grad():
-        model.eval()
-        input_ids, attention_mask = preprocess(reviews)
-        retour = model(input_ids, attention_mask = attention_mask)
+def get_dist(description, model_name='model_BERT'):
+    DATA_PATH = os.path.join(CFG.path_bert,'Data/')
+    MODEL_PATH = os.path.join(CFG.path_models, model_name)
+    labels = pd.read_csv(os.path.join(DATA_PATH, 'labels.csv'), header=None, index_col=False)[0].tolist()
+    predictor = BertClassificationPredictor(
+        model_path=MODEL_PATH,
+        label_path=DATA_PATH,  # location for labels.csv file
+        multi_label=True,
+        model_type='bert',
+        do_lower_case=False,
+        device=None)
+    prediction = predictor.predict(text_prepare(description))
+    return prediction[0][0], prediction[0][1]
 
 def get_clip(image, df_label, niv_tot):
     scores = []
     labels = []
     for niveau in range (1, niv_tot+1):
         if niveau == 1:
-            label_clip, score_clip = simple_CLIP(image, df_label.niv1.tolist())
+            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv1)
             scores.append(score_clip)
-            labels.append(label_clip)
+            labels.append(label_clip)   
         else :
-            index_pre_niv = df_label[df_label['niv{}'.format(niveau-1)]==labels[niveau-1-1]].index.tolist()
-            label_clip, score_clip = simple_CLIP(image, df_label['niv{}'.format(niveau)][index_pre_niv].tolist())
+            label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label['niv{}'.format(niveau)][df_label['niv{}'.format(niveau-1)] == labels[niveau-1]])
             scores.append(score_clip)
             labels.append(label_clip)
     score_clip = 1
     for score in scores:
-        score_clip *= score
+        score_clip = score_clip * score
     return (labels[-1], score_clip)
 
 def write_csv(df, df_label, threshold_clip, threshold_dist):
     for i in range (len(df)):
-        image_path = os.path.join(CFG.path_images, "{}.jpeg".format(df.image[i]))
-        label_dist, score_dist = simple_DIST(df.description[i])
-        label_clip, score_clip = get_clip(image_path, df_label, 2)
+        label_dist, score_dist = get_dist(df.description[i])
+        label_clip, score_clip = get_clip(df.image[i], df_label, 2)
         if label_dist == label_clip:
-            df.result[i] = label_clip 
+            df.result[i] = label_clip
         else:
             if score_clip > threshold_clip and score_dist < threshold_dist :
                 df.result[i] = label_clip
