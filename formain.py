@@ -4,6 +4,7 @@ from PIL import Image
 import os
 from prediction.config import CFG
 import numpy as np
+from config import CFG
 
 def simple_CLIP(image, labels):
     # inputs : image_path, labels (liste)
@@ -46,7 +47,7 @@ def get_clip(image, df_label, niv_tot):
 
 def write_csv(df, df_label, threshold_clip, threshold_dist):
     for i in range (len(df)):
-        image_path = "../gitignore/données/photos/{}.jpeg".format(df.image[i])
+        image_path = os.path.join(CFG.path_images, "{}.jpeg".format(df.image[i]))
         label_dist, score_dist = simple_DIST(df.description[i])
         label_clip, score_clip = get_clip(image_path, df_label, 2)
         if label_dist == label_clip:
