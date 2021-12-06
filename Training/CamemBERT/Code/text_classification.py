@@ -11,8 +11,7 @@ from fast_bert.data_cls import BertDataBunch
 from fast_bert.data_lm import BertLMDataBunch
 from fast_bert.learner_lm import BertLMLearner
 from fast_bert.learner_cls import BertLearner
-from fast_bert.metrics import accuracy
-from fast_bert.metrics import fbeta, roc_auc
+from fast_bert.metrics import accuracy, Exact_Match_Ratio
 import logging
 import unidecode
 from pathlib import Path
@@ -171,8 +170,7 @@ def model2():
             optimizer_type="adamw")
     lm_learner.validate()  
     lm_learner.save_model(MODEL_PATH)      
-
-    OUTPUT_DIR = os.path.join(CFG.path_bert,'Results/')
+    OUTPUT_DIR = os.path.join(CFG.path_bert,'Results','CamemBERT')
     labels = pd.read_csv(os.path.join(DATA_PATH,'labels.csv'), header=None, index_col=False)[0].tolist()
     databunch = BertDataBunch(DATA_PATH, DATA_PATH,
                           tokenizer='camembert-base',
@@ -188,7 +186,7 @@ def model2():
                           model_type='camembert-base')
     logger = logging.getLogger()
     device_cuda = torch.device("cuda")
-    metrics = [{'name': 'fbeta', 'function': fbeta}, {'name': 'roc_auc', 'function': roc_auc}]
+    metrics = [{'name': 'Exact_Match_Ratio', 'function': Exact_Match_Ratio}]
     learner = BertLearner.from_pretrained_model(
 						databunch,
 						pretrained_path=MODEL_PATH,
@@ -216,7 +214,7 @@ def main():
 			validate=True, 	# Evaluate the model after each epoch
 			schedule_type="warmup_cosine",
 			optimizer_type="lamb")
-    
+    learner.validate()  
     learner.save_model(Path(CFG.path_models,'model_BERT'))
 
 def main2():
@@ -224,7 +222,7 @@ def main2():
     if 'cache' in files:
         shutil.rmtree(os.path.join(CFG.path_bert,'Data','cache'))
     learner = model2()
-    learner.fit(epochs=20,
+    learner.fit(epochs=150,
 			lr=9e-5,
 			validate=True, 	# Evaluate the model after each epoch
 			schedule_type="warmup_cosine",
