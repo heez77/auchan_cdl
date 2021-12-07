@@ -476,7 +476,6 @@ def main():
     main_convert(image_path, data_path, 'bio')
     df_train = pd.read_csv(os.path.join(CFG.path_data,'Data','bio_labels_train.csv'))
     df_val = pd.read_csv(os.path.join(CFG.path_data,'Data', 'bio_labels_val.csv'))
-    df_test = pd.read_csv(os.path.join(CFG.path_data,'Data', 'bio_labels_test.csv'))
     
     dataset_train = CarsDatasetAdaptor(image_path+'train/',df_train)
     dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
@@ -486,4 +485,4 @@ def main():
     trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
-    torch.save(model.state_dict(), 'MODEL_PATH')
+    torch.save(model.state_dict(), MODEL_PATH)

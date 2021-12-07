@@ -484,4 +484,4 @@ def main():
     trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_surgele')))+1
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(version_effdet_bio))
-    torch.save(model.state_dict(), 'MODEL_PATH')
+    torch.save(model.state_dict(), MODEL_PATH)
