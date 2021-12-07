@@ -1,2 +1,0 @@
-# auchan_cdl
-Ce 
