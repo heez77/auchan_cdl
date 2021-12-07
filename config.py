@@ -11,6 +11,3 @@ class CFG:
     threshold_clip = 0.8
     threshold_dist = 0.8
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
-os.makedirs(CFG.path_data, exist_ok=True)
-os.makedirs(CFG.path_models, exist_ok=True)
