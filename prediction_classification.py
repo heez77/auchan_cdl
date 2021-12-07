@@ -47,6 +47,7 @@ def get_dist(description, version_BERT):
 
 def get_dist_batch(texts, version_BERT):    
     texts = [text_prepare(text) for text in texts]
+    prediction = []
     DATA_PATH = os.path.join(CFG.path_bert,'Data/')
     MODEL_PATH = os.path.join(CFG.path_models,'CamemBERT',  'CamemBERT_v{}'.format(version_BERT))
     predictor = BertClassificationPredictor(
@@ -56,7 +57,8 @@ def get_dist_batch(texts, version_BERT):
         model_type='camembert-base',
         do_lower_case=False,
         device=None)
-    prediction = predictor.predict_batch(texts)
+    for text in tqdm(texts):
+        prediction.append(predictor.predict(text))
     preds = [p[0][0] for p in prediction]
     scores = [p[0][1] for p in prediction]
     return preds, scores
@@ -66,8 +68,8 @@ def get_clip(image, df_label):
     return label_clip, score_clip
 
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
+    print('Prédictions CamemBERT :')
     list_label_dist, list_score_dist = get_dist_batch(df[:10].description.tolist(),version)
-    print('Prédictions CamemBERT terminée.')
     print('Prédictions CLIP :')
     result = []
     df = df[:10]
@@ -81,7 +83,7 @@ def write_csv(df, df_label, threshold_clip, threshold_dist, version):
             if score_clip > threshold_clip and list_score_dist[i] < threshold_dist :
                 result.append(df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower())
             elif score_clip < threshold_clip and list_score_dist[i] > threshold_dist :
-                result.append(list_label_dist[i])
+                result.append(list_label_dist[i])s
             else:
                 # Vérification humaine (API)
                 result.append('Need Human Verif')
@@ -117,7 +119,6 @@ def main():
     elif old_version>version or old_version<0:
         print('Version invalide')
         exit()
-
     else:
         version = old_version
         
@@ -126,7 +127,8 @@ def main():
     now = datetime.now()
     date = now.strftime("%m-%d-%Y_%H%M%S") 
     df.to_csv(os.path.join(CFG.path,'Resultats','Classification','resultat_classification_{}.csv'.format(date)), index=False)
-
-
+    os.remove(csv)
+    for image in images:
+        os.remove(image)
 if __name__=='__main__':
     main()
