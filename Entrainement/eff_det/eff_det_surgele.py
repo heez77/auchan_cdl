@@ -10,7 +10,8 @@ import pandas as pd
 from pytorch_lightning import Trainer
 import matplotlib.pyplot as plt
 from config import CFG
-import os
+import os, sys
+sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
 
 dico = {'Logo Thermomètre':1, 'Logo Flocon':2}

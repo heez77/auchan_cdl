@@ -5,6 +5,13 @@ import pandas as pd
 from datetime import datetime
 import torch
 import PIL
+import argparse
+
+parser = argparse.ArgumentParser(description='Model version')
+parser.add_argument('--version', type=int,
+                    help='an integer for the version')
+old_version = parser.parse_args()
+
 
 def main(old_version=None):
     label = []
@@ -22,7 +29,7 @@ def main(old_version=None):
     IMAGES_PATH = os.path.join(CFG.path_data,'Predictions_bio/')
     
     if len(images)==0:
-        print('Aucune image à prédir')
+        print('Aucune image à prédire')
     else:
         imgs = [PIL.Image.open(IMAGES_PATH + image) for image in images]
         for i,img in enumerate(imgs):

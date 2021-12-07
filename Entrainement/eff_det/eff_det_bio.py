@@ -11,7 +11,7 @@ import pandas as pd
 from pytorch_lightning import Trainer
 import matplotlib.pyplot as plt
 from config import CFG
-sys.path.append(os.path.join(CFG.path,'Entrainement','eff_det'))
+sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
 
 dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
