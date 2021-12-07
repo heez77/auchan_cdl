@@ -6,3 +6,5 @@ Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/sentencepiece.bpe.model
 Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/special_tokens_map.json
 Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/tokenizer_config.json
 Models/Efficient_Det_bio/Efficient_Det_bio_v1
+__pycache__/config.cpython-38.pyc
+__pycache__/config.cpython-38.pyc
