@@ -13,6 +13,7 @@ from config import CFG
 import os, sys
 sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
+from torch.utils.tensorboard import SummaryWriter
 
 dico = {'Logo Thermomètre':1, 'Logo Flocon':2}
 
@@ -480,7 +481,7 @@ def main():
     dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
-    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1)
+    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1) #Recuperer les callbacks pour tensorboard
     trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_surgele')))+1
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(version_effdet_bio))
