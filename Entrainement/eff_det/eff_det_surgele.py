@@ -13,7 +13,7 @@ from config import CFG
 import os
 from convert_xml_csv import main_convert
 
-dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
+dico = {'Logo Thermomètre':1, 'Logo Flocon':2}
 
 class CarsDatasetAdaptor:
     def __init__(self, images_dir_path, annotations_dataframe): 
@@ -476,14 +476,12 @@ def main():
     main_convert(image_path, data_path, 'bio')
     df_train = pd.read_csv(os.path.join(CFG.path_data,'Data','surgele_labels_train.csv'))
     df_val = pd.read_csv(os.path.join(CFG.path_data,'Data', 'surgele_labels_val.csv'))
-    df_test = pd.read_csv(os.path.join(CFG.path_data,'Data', 'surgele_labels_test.csv'))
-    
     dataset_train = CarsDatasetAdaptor(image_path+'train/',df_train)
     dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
     trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1)
     trainer.fit(model, dm)
-    version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
-    MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
+    version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_surgele')))+1
+    MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(version_effdet_bio))
     torch.save(model.state_dict(), 'MODEL_PATH')
