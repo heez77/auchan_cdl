@@ -14,6 +14,7 @@ import warnings
 warnings. simplefilter(action='ignore', category=Warning)
 import argparse
 import glob
+from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Model version')
 parser.add_argument('--version', type=int,
@@ -61,27 +62,30 @@ def get_dist_batch(texts, version_BERT):
     return preds, scores
 
 def get_clip(image, df_label):
-    scores = []
-    labels = []
-    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv2)
+    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data,'Predictions_classification', image), df_label.niv2)
     return label_clip, score_clip
 
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
-    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(),version)
+    list_label_dist, list_score_dist = get_dist_batch(df[:10].description.tolist(),version)
+    print('Prédictions CamemBERT terminée.')
+    print('Prédictions CLIP :')
+    result = []
+    df = df[:10]
     for i in tqdm(range(len(df))):
-        label_clip, score_clip = get_clip(df.image.iloc[i], df_label, 2)
+        label_clip, score_clip = get_clip(df.image.iloc[i], df_label)
         if list_label_dist[i][-1]=='_':
             list_label_dist[i] = list_label_dist[i][:len(list_label_dist[i])-1]
         if list_label_dist[i].lower() == df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower():
-            df.result[i] = df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower()
+            result.append(df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower())
         else:
             if score_clip > threshold_clip and list_score_dist[i] < threshold_dist :
-                df.result[i] = df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower()
+                result.append(df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower())
             elif score_clip < threshold_clip and list_score_dist[i] > threshold_dist :
-                df.result[i] = list_label_dist[i]
+                result.append(list_label_dist[i])
             else:
                 # Vérification humaine (API)
-                df.result[i] = 'Need Human Verif'
+                result.append('Need Human Verif')
+    df.result = result
     return df
 
 #------------------------------------------------------------------------------------------------------#
@@ -107,15 +111,21 @@ def main():
     #                  'niv2' : 'Label3, Label4, ...' })
     threshold_clip = CFG.threshold_clip
     threshold_dist = CFG.threshold_dist
-    version = len(os.listdir(CFG.path_models,'CamemBERT'))
-    if old_version>version or old_version<0:
+    version = len(os.listdir(os.path.join(CFG.path_models,'CamemBERT')))
+    if old_version==None:
+        pass
+    elif old_version>version or old_version<0:
         print('Version invalide')
+        exit()
+
     else:
         version = old_version
         
-    
+    print('CamemBERT version : {}'.format(version))
     df = write_csv(df, df_label, threshold_clip, threshold_dist, version)
-    df.to_csv(CFG.path_dataframe, index=False)
+    now = datetime.now()
+    date = now.strftime("%m-%d-%Y_%H%M%S") 
+    df.to_csv(os.path.join(CFG.path,'Resultats','Classification','resultat_classification_{}.csv'.format(date)), index=False)
 
 
 if __name__=='__main__':

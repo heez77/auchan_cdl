@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from config import CFG
 sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
+from torch.utils.tensorboard import SummaryWriter
 
 dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
 
@@ -476,12 +477,11 @@ def main():
     main_convert(image_path, data_path, 'bio')
     df_train = pd.read_csv(os.path.join(CFG.path_data,'Data','bio_labels_train.csv'))
     df_val = pd.read_csv(os.path.join(CFG.path_data,'Data', 'bio_labels_val.csv'))
-    
     dataset_train = CarsDatasetAdaptor(image_path+'train/',df_train)
     dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
-    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1)
+    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1) #Recuperer les callbacks pour tensorboard
     trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
