@@ -63,7 +63,6 @@ def create_model(num_classes=1, image_size=512, architecture="tf_efficientnetv2_
     config.update({'num_classes': num_classes})
     config.update({'image_size': (image_size, image_size)})
     
-    print(config)
 
     net = EfficientDet(config, pretrained_backbone=True)
     net.class_net = HeadNet(

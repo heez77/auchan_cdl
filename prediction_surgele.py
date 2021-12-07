@@ -14,11 +14,14 @@ old_version = vars(parser.parse_args())['version']
 
 def main(old_version=old_version):
     label = []
+    version = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_surgele')))
     if old_version== None:
         model = EfficientDetModel(num_classes=len(dico))
-        version = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))
         MODEL_PATH = os.path.join(CFG.path_models,'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(version))
         model.load_state_dict(torch.load(MODEL_PATH))
+    elif 0> old_version or old_version > version:
+        print('Version invalide')
+        exit()
     else:
         model = EfficientDetModel(num_classes=len(dico))
         MODEL_PATH = os.path.join(CFG.path_models,'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(old_version))
@@ -29,6 +32,7 @@ def main(old_version=old_version):
     
     if len(images)==0:
         print('Aucune image à prédire')
+        exit()
     else:
         imgs = [PIL.Image.open(IMAGES_PATH + image) for image in images]
         for img in imgs:

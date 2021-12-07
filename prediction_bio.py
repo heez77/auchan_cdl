@@ -11,14 +11,18 @@ parser = argparse.ArgumentParser(description='Model version')
 parser.add_argument('--version', type=int,
                     help='an integer for the version')
 old_version = vars(parser.parse_args())['version']
-print(old_version)
-def main(old_version=None):
+
+
+def main(old_version=old_version):
     label = []
+    version = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))
     if old_version== None:
-        model = EfficientDetModel(num_classes=len(dico))
-        version = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))
+        model = EfficientDetModel(num_classes=len(dico)) 
         MODEL_PATH = os.path.join(CFG.path_models,'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version))
         model.load_state_dict(torch.load(MODEL_PATH))
+    elif 0> old_version or old_version > version:
+        print('Version invalide')
+        exit()
     else:
         model = EfficientDetModel(num_classes=len(dico))
         MODEL_PATH = os.path.join(CFG.path_models,'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(old_version))
@@ -29,6 +33,7 @@ def main(old_version=None):
     
     if len(images)==0:
         print('Aucune image à prédire')
+        exit()
     else:
         imgs = [PIL.Image.open(IMAGES_PATH + image) for image in images]
         for i,img in enumerate(imgs):
