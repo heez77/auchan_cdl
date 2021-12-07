@@ -445,7 +445,7 @@ class EfficientDetModel(LightningModule):
         indexes = np.where(scores > self.prediction_confidence_threshold)[0]
         boxes = boxes[indexes]
 
-        return {"boxes": boxes, "scores": scores[indexes], "classes": classes[indexes]}
+        return {"boxes": boxes, "scores": scores[indexes], "label": classes[indexes]}
 
     def __rescale_bboxes(self, predicted_bboxes, image_sizes):
         scaled_bboxes = []

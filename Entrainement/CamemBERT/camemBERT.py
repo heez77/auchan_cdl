@@ -46,23 +46,8 @@ def text_prepare(text):
     text = ' '.join([word for word in text.split() if word not in STOPWORDS])
     return text
 
-def get_labels(path):
-    image = []
-    label = []
-    filenames = os.listdir(path)
-    for folder in filenames:
-        imgs = os.listdir(os.path.join(path, folder))
-        for img in imgs:
-            image.append(img)
-            label.append(folder)
-    df = pd.DataFrame(columns=['image', 'label'])
-    df.image = image
-    df.label = label
-    return df
 
-def preprocessing(df):
-    df_labels = get_labels(path=os.path.join(CFG.path_data,'Entrainement_classification'))
-    data = df.set_index('image').join(df_labels.set_index('image'))
+def preprocessing(data):
     data.dropna(inplace=True)
     labels = data.label.unique().tolist()
     X1 = data['description_fournisseur'].tolist()
@@ -129,9 +114,14 @@ def model():
     MODEL_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
     OUTPUT_DIR = Path(CFG.path,'Tensorboard','CamemBERT_fine_tuned')
     WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned/pytorch_model.bin')
-
-    df = pd.read_csv(os.path.join(CFG.path_bert,'Data/text_detector_data.csv'))
+    try:
+        filename = os.listdir(os.path.join(CFG.path_data,'Entrainement_camemBERT'))[0]
+    except:
+        print("Aucun csv d'entrainement")
+        pass
+    df = pd.read_csv(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
     texts = preprocessing(df)
+    os.remove(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
     logger = logging.getLogger()
     databunch_lm = BertLMDataBunch.from_raw_corpus(
 					data_dir=DATA_PATH,
@@ -201,14 +191,14 @@ def main_training_BERT():
     files=os.listdir(os.path.join(CFG.path_bert,'Data/'))
     if 'cache' in files:
         shutil.rmtree(os.path.join(CFG.path_bert,'Data','cache'))
-    df = pd.read_csv(os.path.join(CFG.path_bert,'Data/text_detector_data.csv'))
-    preprocessing(df)
     learner, BERT_PATH = model()
-    learner.fit(epochs=20,
+    learner.fit(epochs=150,
 			lr=9e-5,
 			validate=True, 	# Evaluate the model after each epoch
 			schedule_type="warmup_cosine",
-			optimizer_type="lamb")
-    learner.validate()  
+			optimizer_type="adamw")
     learner.save_model(BERT_PATH)
+
+
+    
 

@@ -25,17 +25,19 @@ def main(old_version=None):
         print('Aucune image à prédir')
     else:
         imgs = [PIL.Image.open(IMAGES_PATH + image) for image in images]
-        for img in imgs:
+        for i,img in enumerate(imgs):
             _, _, predicted_class_labels = model.predict([img])
             if len(predicted_class_labels[0])>0:
                 label.append('bio')
             else:
                 label.append('non bio')
+            os.remove(os.path.join(IMAGES_PATH,images[i]))
     df_resultat = pd.DataFrame(list(zip(images, label)), columns =['Image', 'Label'])
     now = datetime.now()
     date = now.strftime("%m-%d-%Y_%H%M%S")   
     OUTPUT_DIR = os.path.join(CFG.path, 'Resultats', 'Bio','resultat_bio_{}.csv'.format(date))
     df_resultat.to_csv(OUTPUT_DIR)
+
 
 if __name__=='__main__':
     main()
