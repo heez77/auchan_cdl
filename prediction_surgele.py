@@ -5,8 +5,14 @@ import pandas as pd
 from datetime import datetime
 import torch
 import PIL
+import argparse
 
-def main(old_version=None):
+parser = argparse.ArgumentParser(description='Model version')
+parser.add_argument('--version', type=int,
+                    help='an integer for the version')
+old_version = vars(parser.parse_args())['version']
+
+def main(old_version=old_version):
     label = []
     if old_version== None:
         model = EfficientDetModel(num_classes=len(dico))

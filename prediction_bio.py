@@ -10,9 +10,8 @@ import argparse
 parser = argparse.ArgumentParser(description='Model version')
 parser.add_argument('--version', type=int,
                     help='an integer for the version')
-old_version = parser.parse_args()
-
-
+old_version = vars(parser.parse_args())['version']
+print(old_version)
 def main(old_version=None):
     label = []
     if old_version== None:
