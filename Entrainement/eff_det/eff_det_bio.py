@@ -1,3 +1,4 @@
+import sys, os
 from fastcore.dispatch import * 
 import PIL
 import numpy as np
@@ -10,7 +11,7 @@ import pandas as pd
 from pytorch_lightning import Trainer
 import matplotlib.pyplot as plt
 from config import CFG
-import os
+sys.path.append(os.path.join(CFG.path,'Entrainement','eff_det'))
 from convert_xml_csv import main_convert
 
 dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
@@ -445,7 +446,7 @@ class EfficientDetModel(LightningModule):
         indexes = np.where(scores > self.prediction_confidence_threshold)[0]
         boxes = boxes[indexes]
 
-        return {"boxes": boxes, "scores": scores[indexes], "classes": classes[indexes]}
+        return {"boxes": boxes, "scores": scores[indexes], "label": classes[indexes]}
 
     def __rescale_bboxes(self, predicted_bboxes, image_sizes):
         scaled_bboxes = []
