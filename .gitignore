@@ -1,1 +1,9 @@
+<<<<<<< Updated upstream
 
+=======
+/home/jeremy/Documents/GitHub/auchan_cdl/Models/
+*.csv
+__pycache__/
+.vscode/
+gitignore/
+>>>>>>> Stashed changes
