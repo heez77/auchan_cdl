@@ -1,7 +1,5 @@
 from os.path import dirname, abspath
 import sys
-root_path = dirname(abspath('text_classification.py'))
-sys.path.append(root_path)
 import torch
 import clip
 from PIL import Image
@@ -10,11 +8,17 @@ from config import CFG
 from fast_bert.prediction import BertClassificationPredictor
 import pandas as pd
 import numpy as np
-from Data.predictions_clip.text_classification import text_prepare
+from Entrainement.CamemBERT.camemBERT import text_prepare
 from tqdm import tqdm
 import warnings
 warnings. simplefilter(action='ignore', category=Warning)
+import argparse
+import glob
 
+parser = argparse.ArgumentParser(description='Model version')
+parser.add_argument('--version', type=int,
+                    help='an integer for the version')
+old_version = vars(parser.parse_args())['version']
 
 def simple_CLIP(image_path, labels):
     # inputs : image_path, labels (liste)
@@ -27,9 +31,9 @@ def simple_CLIP(image_path, labels):
     max_index = np.argmax(prediction)
     return (labels[max_index], prediction[0][max_index])
 
-def get_dist(description, model_name='model_BERT'):
+def get_dist(description, version_BERT):
     DATA_PATH = os.path.join(CFG.path_bert,'Data/')
-    MODEL_PATH = os.path.join(CFG.path_models, model_name)
+    MODEL_PATH = os.path.join(CFG.path_models,'CamemBERT',  'CamemBERT_v{}'.format(version_BERT))
     predictor = BertClassificationPredictor(
         model_path=MODEL_PATH,
         label_path=DATA_PATH,  # location for labels.csv file
@@ -40,10 +44,10 @@ def get_dist(description, model_name='model_BERT'):
     prediction = predictor.predict(text_prepare(description))
     return prediction[0][0], prediction[0][1]
 
-def get_dist_batch(texts, model_name='model_BERT'):
+def get_dist_batch(texts, version_BERT):    
     texts = [text_prepare(text) for text in texts]
     DATA_PATH = os.path.join(CFG.path_bert,'Data/')
-    MODEL_PATH = os.path.join(CFG.path_models, model_name)
+    MODEL_PATH = os.path.join(CFG.path_models,'CamemBERT',  'CamemBERT_v{}'.format(version_BERT))
     predictor = BertClassificationPredictor(
         model_path=MODEL_PATH,
         label_path=DATA_PATH,  # location for labels.csv file
@@ -56,14 +60,14 @@ def get_dist_batch(texts, model_name='model_BERT'):
     scores = [p[0][1] for p in prediction]
     return preds, scores
 
-def get_clip(image, df_label, niv_tot):
+def get_clip(image, df_label):
     scores = []
     labels = []
     label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_images, image), df_label.niv2)
     return label_clip, score_clip
 
-def write_csv(df, df_label, threshold_clip, threshold_dist):
-    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(),'model_camemBERT')
+def write_csv(df, df_label, threshold_clip, threshold_dist, version):
+    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(),version)
     for i in tqdm(range(len(df))):
         label_clip, score_clip = get_clip(df.image.iloc[i], df_label, 2)
         if list_label_dist[i][-1]=='_':
@@ -84,9 +88,17 @@ def write_csv(df, df_label, threshold_clip, threshold_dist):
 
 
 def main():
-    df = pd.read_csv(CFG.path_dataframe,index_col=False)
-    df_test = pd.read_csv(os.path.join(CFG.path_bert,'Data','img_test.csv'),index_col=False)
-    df = df[df.image.isin(df_test.image)]
+    csv = glob.glob(os.path.join(CFG.path_data,'Predictions_classification','*.csv'))
+    images = glob.glob(os.path.join(CFG.path_data,'Predictions_classification','*.jpg'))
+    if len(csv)>1:
+        print('Trop de csv')
+        exit()
+    elif len(csv)==0:
+        print('Pas de csv')
+        exit()
+    else:
+        csv = csv[0]
+    df = pd.read_csv(csv, index_col=False)
     df.dropna(subset=['description'], inplace=True)
     # df = dict({'image' : 'image.jpg',
     #            'description : 'courte description'})
@@ -95,29 +107,16 @@ def main():
     #                  'niv2' : 'Label3, Label4, ...' })
     threshold_clip = CFG.threshold_clip
     threshold_dist = CFG.threshold_dist
-    df = write_csv(df, df_label, threshold_clip, threshold_dist)
+    version = len(os.listdir(CFG.path_models,'CamemBERT'))
+    if old_version>version or old_version<0:
+        print('Version invalide')
+    else:
+        version = old_version
+        
+    
+    df = write_csv(df, df_label, threshold_clip, threshold_dist, version)
     df.to_csv(CFG.path_dataframe, index=False)
 
-def main_2():
-    df = pd.read_csv(CFG.path_dataframe)
-    df_label = pd.read_csv(CFG.path_labels)
-    # Mesure de performances selon les thresholds
-    acc_list = []
-    for threshold_clip in range(np.linspace(0.0, 1.0, num=11)):
-        for threshold_dist in range(np.linspace(0.0, 1.0, num=11)):
-            labels = performance(df, df_label, threshold_clip, threshold_dist)
-            nb = len(labels)
-            accuracy = 0
-            acc = []
-            for i in range(nb):
-                if labels(i) == df.labels[i]:
-                    accuracy += 1
-            acc_list.append([accuracy/nb, threshold_clip, threshold_dist])
-            acc.append(accuracy/nb)
-
-    max_idx = acc.index(max(acc))
-
-    return acc_list[max_idx]
 
 if __name__=='__main__':
     main()
