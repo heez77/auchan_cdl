@@ -10,5 +10,11 @@ or just run 'pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://
 
 packages in requirements.txt (run 'python -m pip install -r - requirements.txt')
 
-maybe Rust: https://www.rust-lang.org/tools/install
+Rust: https://www.rust-lang.org/tools/install
+
+run:
+'
+import nltk
+nltk.download()
+'
 </pre>
