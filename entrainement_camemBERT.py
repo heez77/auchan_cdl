@@ -8,7 +8,7 @@ def main():
     try:
         main_training_BERT()
     except Exception as e:
-        if len(os.listdir(CFG.path,'Data','Entrainement_classification')) ==0:
+        if len(os.listdir(os.path.join(CFG.path,'Data','Entrainement_camemBERT'))) ==0:
             print("Aucun fichier d'entrainement")
         else:
             print(e)

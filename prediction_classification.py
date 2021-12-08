@@ -64,26 +64,23 @@ def get_dist_batch(texts, version_BERT):
     return preds, scores
 
 def get_clip(image, df_label):
-    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data,'Predictions_classification', image), df_label.niv2)
+    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data,'Predictions_classification', image), df_label.en)
     return label_clip, score_clip
 
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
     print('Prédictions CamemBERT :')
-    list_label_dist, list_score_dist = get_dist_batch(df[:10].description.tolist(),version)
+    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(),version)
     print('Prédictions CLIP :')
     result = []
-    df = df[:10]
     for i in tqdm(range(len(df))):
         label_clip, score_clip = get_clip(df.image.iloc[i], df_label)
-        if list_label_dist[i][-1]=='_':
-            list_label_dist[i] = list_label_dist[i][:len(list_label_dist[i])-1]
-        if list_label_dist[i].lower() == df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower():
-            result.append(df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower())
+        if list_label_dist[i].lower() == df_label[df_label['en']==label_clip].fr.values[0].lower():
+            result.append(df_label[df_label['en']==label_clip].fr.values[0].lower())
         else:
             if score_clip > threshold_clip and list_score_dist[i] < threshold_dist :
-                result.append(df_label[df_label['niv2']==label_clip].niv2_fr.values[0].lower())
+                result.append(df_label[df_label['en']==label_clip].fr.values[0].lower())
             elif score_clip < threshold_clip and list_score_dist[i] > threshold_dist :
-                result.append(list_label_dist[i])s
+                result.append(list_label_dist[i])
             else:
                 # Vérification humaine (API)
                 result.append('Need Human Verif')

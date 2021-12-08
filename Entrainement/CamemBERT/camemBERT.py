@@ -113,7 +113,7 @@ def model():
 
     MODEL_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
     OUTPUT_DIR = Path(CFG.path,'Tensorboard','CamemBERT_fine_tuned')
-    WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned/pytorch_model.bin')
+    WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned) ,'pytorch_model.bin')
     try:
         filename = os.listdir(os.path.join(CFG.path_data,'Entrainement_camemBERT'))[0]
     except:
@@ -121,7 +121,7 @@ def model():
         pass
     df = pd.read_csv(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
     texts = preprocessing(df)
-    os.remove(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
+    #os.remove(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
     logger = logging.getLogger()
     databunch_lm = BertLMDataBunch.from_raw_corpus(
 					data_dir=DATA_PATH,
