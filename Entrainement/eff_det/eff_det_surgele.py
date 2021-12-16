@@ -8,6 +8,7 @@ from effdet.efficientdet import HeadNet
 from effdet.config.model_config import efficientdet_model_param_dict
 import pandas as pd
 from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import TensorBoardLogger
 import matplotlib.pyplot as plt
 from config import CFG
 import os, sys
@@ -472,17 +473,19 @@ class EfficientDetModel(LightningModule):
 
 
 def main():
-    image_path = os.path.join(CFG.path_data,'Entrainement_surgele')
-    data_path = os.path.join(CFG.path_data,'Data')
-    main_convert(image_path, data_path, 'bio')
-    df_train = pd.read_csv(os.path.join(CFG.path_data,'Data','surgele_labels_train.csv'))
-    df_val = pd.read_csv(os.path.join(CFG.path_data,'Data', 'surgele_labels_val.csv'))
-    dataset_train = CarsDatasetAdaptor(image_path+'train/',df_train)
-    dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
+    image_path = os.path.join(CFG.path_data,'Entrainement_surgele', 'images')
+    annot_path = os.path.join(CFG.path_data,'Entrainement_surgele','annotations')
+    data_path = os.path.join(CFG.path_data,'Entrainement_surgele')
+    main_convert(data_path, annot_path, 'surgele')
+    df_train = pd.read_csv(os.path.join(data_path,'surgele_labels_train.csv'))
+    df_val = pd.read_csv(os.path.join(data_path, 'surgele_labels_val.csv'))
+    dataset_train = CarsDatasetAdaptor(os.path.join(image_path,'train/'),df_train)
+    dataset_val = CarsDatasetAdaptor(os.path.join(image_path,'val/'),df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
-    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1) #Recuperer les callbacks pour tensorboard
-    trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_surgele')))+1
+    logger = TensorBoardLogger(os.path.join(CFG.path,'Tensorboard', 'Efficient_Det_surgele'), name="Eff_det_surgele_v{}".format(version_effdet_bio))
+    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1, logger=logger) #Recuperer les callbacks pour tensorboard
+    trainer.fit(model, dm)
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_surgele_v{}'.format(version_effdet_bio))
     torch.save(model.state_dict(), MODEL_PATH)

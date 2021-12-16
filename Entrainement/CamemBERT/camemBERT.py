@@ -19,8 +19,9 @@ root_path = dirname(abspath('text_classification.py'))
 sys.path.append(root_path)
 import shutil
 from config import CFG
-
-
+from tqdm import tqdm
+import warnings
+warnings. simplefilter(action='ignore', category=Warning)
 
 
 final_stopwords_list = nltk.corpus.stopwords.words('english') + nltk.corpus.stopwords.words('french')
@@ -62,8 +63,8 @@ def preprocessing(data):
     X = [text_prepare(text) for text in X]
     X = np.array(X)
 
-    x, x_test, y, y_test, img, img_test = train_test_split(X,Y,imgs,test_size=0.2,train_size=0.8)
-    x_train, x_val, y_train, y_val, img_train, img_val = train_test_split(x,y,img,test_size = 0.25,train_size =0.75)
+    x, x_test, y, y_test, img, img_test = train_test_split(X,Y,imgs,test_size=0.05,train_size=0.95)
+    x_train, x_val, y_train, y_val, img_train, img_val = train_test_split(x,y,img,test_size = 0.15,train_size =0.85)
 
     df_lab = pd.DataFrame(columns=['label'])
     df_lab.label = labels
@@ -100,57 +101,70 @@ def preprocessing(data):
     
     
 
-def model():
+def model(tuning):
     DATA_PATH = Path(os.path.join(CFG.path_bert,'Data/'))
 
-    version_fine_tuned = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned')))+1
-    os.mkdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
-    os.mkdir(os.path.join(CFG.path,'Tensorboard', 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
+     # texts = preprocessing(df)
+    x_test = pd.read_csv('Entrainement/CamemBERT/Data/test.csv', index_col=False)
+    x_train = pd.read_csv('Entrainement/CamemBERT/Data/train.csv', index_col=False)
+    x_val = pd.read_csv('Entrainement/CamemBERT/Data/val.csv', index_col=False)
+    texts = x_train.text.tolist() + x_test.text.tolist() + x_val.text.tolist()
+
+    if tuning:
+        version_fine_tuned = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned')))+1
+        os.mkdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
+        os.mkdir(os.path.join(CFG.path,'Tensorboard', 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
+        os.mkdir(os.path.join(CFG.path,'Tensorboard', 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned),'tensorboard'))
+        OUTPUT_DIR = Path(CFG.path,'Tensorboard','CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned))
+        WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned) ,'pytorch_model.bin')
+        MODEL_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
+        logger = logging.getLogger()
+        databunch_lm = BertLMDataBunch.from_raw_corpus(
+                        data_dir=DATA_PATH,
+                        text_list=texts,
+                        tokenizer='camembert-base',
+                        batch_size_per_gpu=4,
+                        max_seq_length=512,
+                        multi_gpu=False,
+                        model_type='camembert-base',
+                        logger=logger)
+        lm_learner = BertLMLearner.from_pretrained_model(
+                                dataBunch=databunch_lm,
+                                pretrained_path='camembert-base',
+                                output_dir=OUTPUT_DIR,
+                                metrics=[],
+                                device=torch.device(CFG.device),
+                                logger=logger,
+                                multi_gpu=False,
+                                logging_steps=50,
+                                fp16_opt_level="O2")
+        lm_learner.fit(epochs=30,
+                lr=1e-4,
+                validate=True,
+                schedule_type="warmup_cosine",
+                optimizer_type="adamw")
+        lm_learner.validate()  
+        lm_learner.save_model(MODEL_PATH)  
+    else:
+        version_fine_tuned = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned')))
+        WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned) ,'pytorch_model.bin')
+        MODEL_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
+
+
     version_camembert = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT')))+1
     os.mkdir(os.path.join(CFG.path_models, 'CamemBERT','CamemBERT_v{}'.format(version_camembert)))
     os.mkdir(os.path.join(CFG.path,'Tensorboard', 'CamemBERT','CamemBERT_v{}'.format(version_camembert)))
     BERT_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT','CamemBERT_v{}'.format(version_camembert)))
 
-    MODEL_PATH = Path(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned','CamemBERT_fine_tuned_v{}'.format(version_fine_tuned)))
-    OUTPUT_DIR = Path(CFG.path,'Tensorboard','CamemBERT_fine_tuned')
-    WGTS_PATH = Path(CFG.path_models,'CamemBERT_fine_tuned/pytorch_model.bin')
     try:
         filename = os.listdir(os.path.join(CFG.path_data,'Entrainement_camemBERT'))[0]
     except:
         print("Aucun csv d'entrainement")
         pass
     df = pd.read_csv(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
-    texts = preprocessing(df)
-    os.remove(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
-    logger = logging.getLogger()
-    databunch_lm = BertLMDataBunch.from_raw_corpus(
-					data_dir=DATA_PATH,
-					text_list=texts,
-					tokenizer='camembert-base',
-					batch_size_per_gpu=4,
-					max_seq_length=512,
-                    multi_gpu=False,
-                    model_type='camembert-base',
-                    logger=logger)
-    lm_learner = BertLMLearner.from_pretrained_model(
-                            dataBunch=databunch_lm,
-                            pretrained_path='camembert-base',
-                            output_dir=MODEL_PATH,
-                            metrics=[],
-                            device=torch.device(CFG.device),
-                            logger=logger,
-                            multi_gpu=False,
-                            logging_steps=50,
-                            fp16_opt_level="O2")
-    lm_learner.fit(epochs=30,
-            lr=1e-4,
-            validate=True,
-            schedule_type="warmup_cosine",
-            optimizer_type="adamw")
-    lm_learner.validate()  
-    lm_learner.save_model(MODEL_PATH)      
-
-
+   
+    # os.remove(os.path.join(CFG.path_data,'Entrainement_camemBERT',filename))
+        
 
     OUTPUT_DIR_BERT = Path(os.path.join(CFG.path,'Tensorboard', 'CamemBERT','CamemBERT_v{}'.format(version_camembert)))
     labels = pd.read_csv(os.path.join(DATA_PATH,'labels.csv'), header=None, index_col=False)[0].tolist()
@@ -186,15 +200,40 @@ def model():
         
     return learner, BERT_PATH
 
-def main_training_BERT():
+def checkpoint(n_save, n_epochs, learner, BERT_PATH):
+    match_global = 0
+    early_stop=0
+    loss_global=np.inf
+    lr = 9e-5
+    for epoch in tqdm(range(int(n_epochs/n_save))):
+        _,_,scheduler = learner.fit(epochs=n_save,
+                                    lr=lr,
+                                    validate=True, 	# Evaluate the model after each epoch
+                                    schedule_type="warmup_cosine",
+                                    optimizer_type="adamw")
+        scheduler.step()
+        lr = scheduler.get_lr()[0]
+        results = learner.validate()
+        match = results['Exact_Match_Ratio']
+        loss = results['loss']
+        if match>=match_global:   
+            learner.save_model(Path(os.path.join(BERT_PATH,'exact_match')))
+            print('Save epoch : ', str((epoch+1)*n_save))
+            match_global = match
+            early_stop=0
+        if loss<=loss_global:   
+            learner.save_model(Path(os.path.join(BERT_PATH,'loss')))
+            loss_global = loss
+        else:
+            early_stop+=n_save
+            if early_stop>20:
+                print("Stop epoch : ",str((epoch+1)*n_save))
+                exit()
+    print("Stop epoch : ",str(n_epochs))
 
-    files=os.listdir(os.path.join(CFG.path_bert,'Data/'))
+def main_training_BERT(tuning):
+    files = os.listdir(os.path.join(CFG.path_bert,'Data'))
     if 'cache' in files:
         shutil.rmtree(os.path.join(CFG.path_bert,'Data','cache'))
-    learner, BERT_PATH = model()
-    learner.fit(epochs=150,
-			lr=9e-5,
-			validate=True, 	# Evaluate the model after each epoch
-			schedule_type="warmup_cosine",
-			optimizer_type="adamw")
-    learner.save_model(BERT_PATH)
+    learner, BERT_PATH = model(tuning)
+    checkpoint(1, 200, learner, BERT_PATH)
