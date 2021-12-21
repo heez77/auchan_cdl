@@ -1,0 +1,8 @@
+setup.py
+Gertrude.egg-info/PKG-INFO
+Gertrude.egg-info/SOURCES.txt
+Gertrude.egg-info/dependency_links.txt
+Gertrude.egg-info/requires.txt
+Gertrude.egg-info/top_level.txt
+trainer/__init__.py
+trainer/task.py
