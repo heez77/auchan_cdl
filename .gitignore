@@ -1,2 +1,31 @@
 /home/jeremy/Documents/GitHub/auchan_cdl/Models/
 *.csv
+Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/config.json
+Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/pytorch_model.bin
+Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/sentencepiece.bpe.model
+Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/special_tokens_map.json
+Models/CamemBERT_fine_tuned/CamemBERT_fine_tuned_v1/tokenizer_config.json
+Models/Efficient_Det_bio/Efficient_Det_bio_v1
+
+# *.csv
+.vscode/
+
+__pycache__/
+Entrainement/__pycache__/
+
+Data/
+# Models/
+Resultats/
+Tensorboard/
+*.model
+*.json
+*.Ankama
+*.bin
+*.Ankama
+*.Ankama
+*.csv#
+*.csv#
+test.ipynb
+test.ipynb
+*.ipynb
+test.ipynb

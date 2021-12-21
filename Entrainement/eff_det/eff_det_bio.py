@@ -9,10 +9,12 @@ from effdet.efficientdet import HeadNet
 from effdet.config.model_config import efficientdet_model_param_dict
 import pandas as pd
 from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import TensorBoardLogger
 import matplotlib.pyplot as plt
 from config import CFG
-sys.path.append(os.path.join(CFG.path,'Entrainement','eff_det'))
+sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
+from torch.utils.tensorboard import SummaryWriter
 
 dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
 
@@ -63,7 +65,6 @@ def create_model(num_classes=1, image_size=512, architecture="tf_efficientnetv2_
     config.update({'num_classes': num_classes})
     config.update({'image_size': (image_size, image_size)})
     
-    print(config)
 
     net = EfficientDet(config, pretrained_backbone=True)
     net.class_net = HeadNet(
@@ -472,19 +473,19 @@ class EfficientDetModel(LightningModule):
 
 
 def main():
-    image_path = os.path.join(CFG.path_data,'Entrainement_bio')
-    data_path = os.path.join(CFG.path_data,'Data')
-    main_convert(image_path, data_path, 'bio')
-    df_train = pd.read_csv(os.path.join(CFG.path_data,'Data','bio_labels_train.csv'))
-    df_val = pd.read_csv(os.path.join(CFG.path_data,'Data', 'bio_labels_val.csv'))
-    df_test = pd.read_csv(os.path.join(CFG.path_data,'Data', 'bio_labels_test.csv'))
-    
-    dataset_train = CarsDatasetAdaptor(image_path+'train/',df_train)
-    dataset_val = CarsDatasetAdaptor(image_path+'val/',df_val)
+    image_path = os.path.join(CFG.path_data,'Entrainement_bio', 'images')
+    annot_path = os.path.join(CFG.path_data,'Entrainement_bio','annotations')
+    data_path = os.path.join(CFG.path_data,'Entrainement_bio')
+    main_convert(data_path, annot_path, 'bio')
+    df_train = pd.read_csv(os.path.join(data_path,'bio_labels_train.csv'))
+    df_val = pd.read_csv(os.path.join(data_path, 'bio_labels_val.csv'))
+    dataset_train = CarsDatasetAdaptor(os.path.join(image_path,'train/'),df_train)
+    dataset_val = CarsDatasetAdaptor(os.path.join(image_path,'val/'),df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
-    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1)
-    trainer.fit(model, dm)
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
+    logger = TensorBoardLogger(os.path.join(CFG.path,'Tensorboard', 'Efficient_Det_bio'), name="Eff_det_bio_v{}".format(version_effdet_bio))
+    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1, logger=logger) #Recuperer les callbacks pour tensorboard
+    trainer.fit(model, dm)
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
-    torch.save(model.state_dict(), 'MODEL_PATH')
+    torch.save(model.state_dict(), MODEL_PATH)
