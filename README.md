@@ -26,11 +26,15 @@ or just run 'pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://
 
 packages in requirements.txt (run 'python -m pip install -r - requirements.txt')
 
-(only on Windows) Rust: https://www.rust-lang.org/tools/install
+(Windows only) Rust: https://www.rust-lang.org/tools/install
 
 run:
-'
 import nltk
 nltk.download()
-'
 </pre>
+
+## Object detection
+
+## Modèle "Dense"
+
+Le modèle baptisé "Dense" fusionne la classification proposée à la fois par le modèle CLIP (pour les données d'images) et à la fois par un modèle CamemBERT (pour les données textuelles) qui a été "fine-tunné". Les résultats sur les données de test donnent une précision >80% de classification d'un produit dans l'une des 79 catégories pré-définies.
