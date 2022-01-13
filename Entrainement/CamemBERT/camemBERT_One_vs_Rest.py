@@ -56,6 +56,7 @@ def preprocessing(labels, i):
 
 
 def main_training_classifier(epochs, nb_labels=nb_labels, labels=labels):
+    DATA_PATH = Path(os.path.join(CFG.path_bert,'Data/'))
     version_fine_tuned = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT_fine_tuned')))
     version_camembert = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT_one_vs_rest'))) + 1
     os.mkdir(

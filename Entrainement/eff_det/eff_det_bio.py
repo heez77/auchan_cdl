@@ -485,7 +485,7 @@ def main():
     model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
     logger = TensorBoardLogger(os.path.join(CFG.path,'Tensorboard', 'Efficient_Det_bio'), name="Eff_det_bio_v{}".format(version_effdet_bio))
-    trainer = Trainer(gpus=[0], max_epochs=100, num_sanity_val_steps=1, logger=logger) #Recuperer les callbacks pour tensorboard
+    trainer = Trainer(gpus=[0], max_epochs=400, num_sanity_val_steps=1, logger=logger) #Recuperer les callbacks pour tensorboard
     trainer.fit(model, dm)
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
     torch.save(model.state_dict(), MODEL_PATH)

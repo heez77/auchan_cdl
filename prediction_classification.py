@@ -32,8 +32,8 @@ def simple_CLIP(image_path, labels, model, preprocess):
     return (labels[max_index], prediction[0][max_index])
 
 def get_dist(description, version_BERT):
-    DATA_PATH = os.path.join(CFG.path_bert,'Data/')
-    MODEL_PATH = os.path.join(CFG.path_models,'CamemBERT',  'CamemBERT_v{}'.format(version_BERT))
+    DATA_PATH = os.path.join(CFG.path_bert, 'Data')
+    MODEL_PATH = os.path.join(CFG.path_models, 'CamemBERT', 'CamemBERT_v{}'.format(version_BERT))
     predictor = BertClassificationPredictor(
         model_path=MODEL_PATH,
         label_path=DATA_PATH,  # location for labels.csv file
@@ -47,7 +47,7 @@ def get_dist(description, version_BERT):
 def get_dist_batch(texts, version_BERT):    
     texts = [text_prepare(text) for text in texts]
     prediction = []
-    DATA_PATH = os.path.join(CFG.path_bert,'Data/')
+    DATA_PATH = os.path.join(CFG.path_bert, 'Data')
     MODEL_PATH = os.path.join(CFG.path_models,'CamemBERT',  'CamemBERT_v{}'.format(version_BERT))
     predictor = BertClassificationPredictor(
         model_path=MODEL_PATH,
@@ -63,12 +63,12 @@ def get_dist_batch(texts, version_BERT):
     return preds, scores
 
 def get_clip(image, df_label, model, preprocess):
-    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data,'Predictions_classification', image), df_label.en, model, preprocess)
+    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data, 'Predictions_classification', image), df_label.en, model, preprocess)
     return label_clip, score_clip
 
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
     print('Prédictions CamemBERT :')
-    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(),version)
+    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(), version)
     print('Prédictions CLIP :')
     result = []
     model, preprocess = clip.load("ViT-B/32", device=CFG.device)
@@ -89,7 +89,7 @@ def write_csv(df, df_label, threshold_clip, threshold_dist, version):
 
 #------------------------------------------------------------------------------------------------------#
 def main_performance():
-    csv = glob.glob(os.path.join(CFG.path_data,'Predictions_classification','*.csv'))
+    csv = glob.glob(os.path.join(CFG.path_data, 'Predictions_classification', '*.csv'))
     if len(csv)>1:
         print('Trop de csv')
         exit()
@@ -106,9 +106,9 @@ def main_performance():
     df_label = pd.read_csv(CFG.path_labels)
     # df_label = dict({'niv1' : 'Label1, Label2, ...'
     #                  'niv2' : 'Label3, Label4, ...' })
-    threshold_clip_list = np.linspace(0,1,3)
-    threshold_dist_list = np.linspace(0,1,3)
-    version = len(os.listdir(os.path.join(CFG.path_models,'CamemBERT')))
+    threshold_clip_list = np.linspace(0, 1, 3)
+    threshold_dist_list = np.linspace(0, 1, 3)
+    version = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT')))
         
     print('CamemBERT version : {}'.format(version))
     score=[]
@@ -126,11 +126,11 @@ def main_performance():
             t_c.append(threshold_clip)
             t_d.append(threshold_dist)
     df_perf = pd.DataFrame(list(zip(t_c,t_d,score)), columns=['treshold_CLIP', 'treshold_camemBERT', 'score'])
-    df_perf.to_csv(os.path.join(CFG.path, 'Resultats', 'Classification','performance_BERT_v{}'.format(version)))
+    df_perf.to_csv(os.path.join(CFG.path, 'Resultats', 'Classification', 'performance_BERT_v{}'.format(version)))
 
 def main():
-    csv = glob.glob(os.path.join(CFG.path_data,'Predictions_classification','*.csv'))
-    images = glob.glob(os.path.join(CFG.path_data,'Predictions_classification','*.jpg'))
+    csv = glob.glob(os.path.join(CFG.path_data, 'Predictions_classification', '*.csv'))
+    images = glob.glob(os.path.join(CFG.path_data, 'Predictions_classification', '*.jpg'))
     if len(csv)>1:
         print('Trop de csv')
         exit()
@@ -148,7 +148,7 @@ def main():
     #                  'niv2' : 'Label3, Label4, ...' })
     threshold_clip = CFG.threshold_clip
     threshold_dist = CFG.threshold_dist
-    version = len(os.listdir(os.path.join(CFG.path_models,'CamemBERT')))
+    version = len(os.listdir(os.path.join(CFG.path_models, 'CamemBERT')))
     if old_version==None:
         pass
     elif old_version>version or old_version<0:
@@ -161,7 +161,7 @@ def main():
     df = write_csv(df, df_label, threshold_clip, threshold_dist, version)
     now = datetime.now()
     date = now.strftime("%m-%d-%Y_%H%M%S") 
-    df.to_csv(os.path.join(CFG.path,'Resultats','Classification','resultat_classification_{}.csv'.format(date)), index=False)
+    df.to_csv(os.path.join(CFG.path, 'Resultats', 'Classification', 'resultat_classification_{}.csv'.format(date)), index=False)
     os.remove(csv)
     for image in images:
         os.remove(image)
