@@ -6,7 +6,6 @@ import ensemble_boxes
 from effdet.config.model_config import efficientdet_model_param_dict
 from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
 from effdet.efficientdet import HeadNet
-from effdet.config.model_config import efficientdet_model_param_dict
 import pandas as pd
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -14,11 +13,23 @@ import matplotlib.pyplot as plt
 from config import CFG
 sys.path.append(os.path.join(CFG.path_det))
 from convert_xml_csv import main_convert
-from torch.utils.tensorboard import SummaryWriter
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
+from torch.utils.data import Dataset
+from pytorch_lightning import LightningDataModule
+from torch.utils.data import DataLoader
+import torch
+from pytorch_lightning import LightningModule
+from pytorch_lightning.core.decorators import auto_move_data
 
-dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}
+#######################################################################################################################
+#                    Script avec les fonctions pour l'entrainement du modèle EfficientDet Bio.                        #
+#######################################################################################################################
 
-class CarsDatasetAdaptor:
+dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3} # Liste des labels disponibles 
+
+#            Récupération des images et annotations 
+class DatasetAdaptor:
     def __init__(self, images_dir_path, annotations_dataframe): 
         self.images_dir_path = images_dir_path
         self.annotations_df = annotations_dataframe
@@ -32,9 +43,9 @@ class CarsDatasetAdaptor:
         image = PIL.Image.open(self.images_dir_path + image_name)
         pascal_bboxes = self.annotations_df[self.annotations_df.image == image_name][
             ["xmin", "ymin", "xmax", "ymax"]
-        ].values
+        ].values # Récupération des rectangles 
         class_labels = self.annotations_df[self.annotations_df.image == image_name][
-            ["class"]].values.tolist()
+            ["class"]].values.tolist() # Récupération des labels pour chaque rectangle 
         c_l = np.zeros(len(class_labels))
         for i,cl in enumerate(class_labels):
             c_l[i] = dico[cl[0]]
@@ -47,57 +58,48 @@ class CarsDatasetAdaptor:
             dico['image_{}.jpeg'.format(index)]=image_name
         return dico
 
-    
+#                             Création du modèle 
 
-
-
-
-
-def create_model(num_classes=1, image_size=512, architecture="tf_efficientnetv2_l"):
-    efficientdet_model_param_dict['tf_efficientnetv2_l'] = dict(
+def create_model(num_classes=len(dico), image_size=512, architecture="tf_efficientnetv2_l"):
+    efficientdet_model_param_dict['tf_efficientnetv2_l'] = dict( # Initialisation des paramètres du modèle
         name='tf_efficientnetv2_l',
         backbone_name='tf_efficientnetv2_l',
         backbone_args=dict(drop_path_rate=0.2),
         num_classes=num_classes,
         url='', )
     
+    #------------------config-------------------#
     config = get_efficientdet_config(architecture)
     config.update({'num_classes': num_classes})
     config.update({'image_size': (image_size, image_size)})
+    #-------------------------------------------#
     
 
-    net = EfficientDet(config, pretrained_backbone=True)
-    net.class_net = HeadNet(
+    net = EfficientDet(config, pretrained_backbone=True) # Création du modèle
+    net.class_net = HeadNet( # Ajout de la config
         config,
         num_outputs=config.num_classes,
     )
     return DetBenchTrain(net, config)
 
-
-
-
-
-
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
-
+#                    Preprocessing
 
 def get_train_transforms(target_img_size=512):
     return A.Compose(
         [
-            A.HorizontalFlip(p=0.5),
-            A.Resize(height=target_img_size, width=target_img_size, p=1),
-            A.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            A.HorizontalFlip(p=0.5), # Création d'une deuxième image horizontale
+            A.Resize(height=target_img_size, width=target_img_size, p=1), #Recadrage
+            A.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), # Normalisation
             ToTensorV2(p=1),
         ],
         p=1.0,
         bbox_params=A.BboxParams(
-            format="pascal_voc", min_area=0, min_visibility=0, label_fields=["labels"]
+            format="pascal_voc", min_area=0, min_visibility=0, label_fields=["labels"] # Format des rectangles 
         ),
     )
 
 
-def get_valid_transforms(target_img_size=512):
+def get_valid_transforms(target_img_size=512): # Même preprocessing mais pour la validation
     return A.Compose(
         [
             A.Resize(height=target_img_size, width=target_img_size, p=1),
@@ -110,17 +112,11 @@ def get_valid_transforms(target_img_size=512):
         ),
     )
 
-
-
-
-
-
-
-from torch.utils.data import Dataset
+#            Création du dataset 
 
 class EfficientDetDataset(Dataset):
     def __init__(
-        self, dataset_adaptor, transforms=get_valid_transforms()
+        self, dataset_adaptor, transforms=get_valid_transforms() # Preprocessing
     ):
         self.ds = dataset_adaptor
         self.transforms = transforms
@@ -131,7 +127,7 @@ class EfficientDetDataset(Dataset):
             pascal_bboxes,
             class_labels,
             image_id,
-        ) = self.ds.get_image_and_labels_by_idx(index)
+        ) = self.ds.get_image_and_labels_by_idx(index) # Récupération de l'image et des rectangles
 
         sample = {
             "image": np.array(image, dtype=np.float32),
@@ -150,7 +146,7 @@ class EfficientDetDataset(Dataset):
             :, [1, 0, 3, 2]
         ]  # convert to yxyx
 
-        target = {
+        target = { # Ce que doit prédire le modèle 
             "bboxes": torch.as_tensor(pascal_bboxes, dtype=torch.float32),
             "labels": torch.as_tensor(labels),
             "image_id": torch.tensor([image_id]),
@@ -164,9 +160,7 @@ class EfficientDetDataset(Dataset):
         return len(self.ds)
 
 
-
-from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader
+# Création d'un module utilisé par le modèle pour avoir accès à toutes les données
 
 class EfficientDetDataModule(LightningDataModule):
     
@@ -245,12 +239,7 @@ class EfficientDetDataModule(LightningDataModule):
         return images, annotations, targets, image_ids
 
     
-
-
-import torch
-from pytorch_lightning import LightningModule
-from pytorch_lightning.core.decorators import auto_move_data
-
+#                 Rassemble des rectangles ensembles si le modèle en prédit des trop proches
 
 def run_wbf(predictions, image_index, image_size=512, iou_thr=0.44, skip_box_thr=0.43, weights=None):
         boxes = [(predictions[image_index]['boxes']/(image_size-1)).tolist()]
@@ -260,6 +249,7 @@ def run_wbf(predictions, image_index, image_size=512, iou_thr=0.44, skip_box_thr
         boxes = boxes*(image_size-1)
         return boxes, scores, labels
 
+#                        Création du modèle
 
 class EfficientDetModel(LightningModule):
     def __init__(
@@ -473,19 +463,23 @@ class EfficientDetModel(LightningModule):
 
 
 def main():
+    # Chemins d'accès aux différentes données d'entrainement
     image_path = os.path.join(CFG.path_data,'Entrainement_bio', 'images')
     annot_path = os.path.join(CFG.path_data,'Entrainement_bio','annotations')
     data_path = os.path.join(CFG.path_data,'Entrainement_bio')
-    main_convert(data_path, annot_path, 'bio')
+
+    main_convert(data_path, annot_path, 'bio') # Conversion des fichiers d'annotations xml en csv
     df_train = pd.read_csv(os.path.join(data_path,'bio_labels_train.csv'))
     df_val = pd.read_csv(os.path.join(data_path, 'bio_labels_val.csv'))
-    dataset_train = CarsDatasetAdaptor(os.path.join(image_path,'train/'),df_train)
-    dataset_val = CarsDatasetAdaptor(os.path.join(image_path,'val/'),df_val)
+    # Création des datasets et du module
+    dataset_train = DatasetAdaptor(os.path.join(image_path,'train/'),df_train)
+    dataset_val = DatasetAdaptor(os.path.join(image_path,'val/'),df_val)
     dm = EfficientDetDataModule(dataset_train, dataset_val)
-    model = EfficientDetModel(num_classes=len(dico)) #Rajouter attribut img_size à 1200 ?
+    # Création du modèle
+    model = EfficientDetModel(num_classes=len(dico)) 
     version_effdet_bio = len(os.listdir(os.path.join(CFG.path_models,'Efficient_Det_bio')))+1
     logger = TensorBoardLogger(os.path.join(CFG.path,'Tensorboard', 'Efficient_Det_bio'), name="Eff_det_bio_v{}".format(version_effdet_bio))
-    trainer = Trainer(gpus=[0], max_epochs=400, num_sanity_val_steps=1, logger=logger) #Recuperer les callbacks pour tensorboard
-    trainer.fit(model, dm)
+    trainer = Trainer(gpus=[0], max_epochs=400, num_sanity_val_steps=1, logger=logger) # Environnement d'entrainement pour le modèle 
+    trainer.fit(model, dm) # Entrainement
     MODEL_PATH = os.path.join(CFG.path_models, 'Efficient_Det_bio','Efficient_Det_bio_v{}'.format(version_effdet_bio))
-    torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), MODEL_PATH) # Sauvegarde du modèle 
