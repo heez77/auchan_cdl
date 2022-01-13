@@ -9,6 +9,14 @@ from pathlib import Path
 import shutil
 from config import CFG
 
+#######################################################################################################################
+#                               Script des fonctions d'entrainement en OnevsRest                                      #
+#                                                                                                                     #
+#                 En mode One vs Rest, on créer autant de classifieur qu'il y a de labels et                          #
+#               Chaque classifieur apprend à classifier un produit entre son label ou le reste.                       #
+#######################################################################################################################
+
+
 
 labels = pd.read_csv(CFG.path_label, index_col=False)
 nb_labels = len(labels)
