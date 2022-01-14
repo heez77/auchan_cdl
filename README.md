@@ -237,3 +237,18 @@ Une nouvelle page Tensorboard s'ouvre et nous pouvons voir des résultats :
 ### Prédiction classification - méthode "Dense"
 
 ### Prédiction object-detection
+
+## GCP :
+
+<p> Le sigle GCP signifie Google Cloud Platform. Cette plateforme Cloud contient notamment l'outil Vertex AI spécialisé dans le Machine Learning. </p>
+
+<p> Pour ce projet, nous avons :
+<ol>
+  <li> Placé nos données dans un bucket </li>
+  <li> Lancé plusieurs Custom Jobs correspondant à des tentatives d'entraînement de l'algorithme CamemBERT </li>
+</ol>
+</p>
+
+<p> Pour lancer le custom jobs, il faut au préalable installer Cloud SDK et créer un package Python dans lequel est présent le code (dans un fichier task.py). Nous nous sommes cependant heurtés rapidement à des problèmes de permission. En particulier, pour récupérer les données des buckets, il faut installer la librairie Google-cloud-storage et utiliser la fonction storage : </p>
+<pre> from google-cloud import storage </pre>
+<p> Cependant, l'utilisation de ces fonctions nécessitent des droits que nous n'avions pas. </p>
