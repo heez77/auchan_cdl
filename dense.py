@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from config import CFG
 import os
 from Entrainement.Dense.customloss import CustomLoss
+from tqdm import tqdm
+import pandas as pd
+import numpy as np
 
 class DenseModel(nn.Module):
     def __init__(self):
@@ -11,11 +14,10 @@ class DenseModel(nn.Module):
         self.dense1 = nn.Linear(158, 256)  # equivalent to Dense in keras
         self.dense2 = nn.Linear(256,128)
         self.dense3 = nn.Linear(128, 79)
-        self.dropout = nn.Dropout(p=0.3)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x):
         x = F.relu(self.dense1(x))
-        x = self.dropout(x)
         x = F.relu(self.dense2(x))
         x = self.dropout(x)
         x = F.softmax(self.dense3(x), dim=0)
@@ -23,12 +25,6 @@ class DenseModel(nn.Module):
 
 model = DenseModel()
 
-# model = nn.Sequential(
-#     nn.Linear(158, 256),
-#     nn.Linear(256,79)
-# )
-
-import pandas as pd
 # Preprocessing
 df_label = pd.read_csv(os.path.join(CFG.path, "labels_en_fr.csv"))
 labels = df_label.fr.tolist()
@@ -54,8 +50,6 @@ del df2['label']
 X_val = df2.to_numpy()
 X_val = torch.tensor(X_val)
 
-import numpy as np
-
 def to_categorical(y, num_classes):
     """ 1-hot encodes a tensor """
     return np.eye(num_classes, dtype='float32')[y]
@@ -73,20 +67,18 @@ y = y_train
 
 # train
 
-criterion = torch.nn.MSELoss(reduction='sum')  # changer
-# criterion = CustomLoss()
+criterion = CustomLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+for epoch in tqdm(range(5000)):
+    y_pred = model(x.float())
+    loss = criterion(y_pred, y)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
 
-# for epoch in range(5000):
-#     y_pred = model(x.float())
-#     loss = criterion(y_pred, y)
-#     optimizer.zero_grad()
-#     loss.backward()
-#     optimizer.step()
+# torch.save(model.state_dict(), os.path.join(os.getcwd(), "DenseModelCustom.pth"))
 
-# torch.save(model.state_dict(), os.path.join(os.getcwd(), "DenseModel.pth"))
-
-model.load_state_dict(torch.load(os.path.join(os.getcwd(), "DenseModel.pth")))
+model.load_state_dict(torch.load(os.path.join(os.getcwd(), "DenseModelCustom.pth")))
 
 df3 = pd.read_csv(os.path.join(CFG.path, "dense_test.csv"), index_col=False)
 del df3['image']
