@@ -131,7 +131,7 @@ def main():
 
     else:
         csv = csv[0]
-    df = pd.read_csv(csv, index_col=False)
+    df = pd.read_csv(csv, index_col=False)[:10]
     df.dropna(subset=['description'], inplace=True) #Suppression des produits sans description
     df_label = pd.read_csv(CFG.path_labels) #Récupération des labels
     threshold_clip = CFG.threshold_clip
