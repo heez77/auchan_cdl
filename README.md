@@ -38,9 +38,6 @@ Ci-dessous les requirements sur une machine locale.
 <p> ou run </p>
 <pre> pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html' </pre>
 
-Tensorflow 2.7.0
-<pre> pip install tensorflow==2.7.0 </pre>
-
 <p> (Windows seulement) Rust : https://www.rust-lang.org/tools/install </p>
 
 <p> Fast BERT 1.9.9 </p>
@@ -48,14 +45,21 @@ Tensorflow 2.7.0
 git clone https://github.com/NVIDIA/apex
 cd apex
 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
-pip install fast-bert==1.9.9
 </pre>
 
 CLIP
 <pre>
-pip install ftfy regex tqdm
 pip install git+https://github.com/openai/CLIP.git
 </pre>
+
+EffDet
+
+(Windows seulement) Télécharger [Visual Studio Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+<p> Cocher les cases suivantes et installer:
+</p>
+<p align="center">
+       <img src="https://i.stack.imgur.com/pRpx0.png" width="800"/>
+</p>
 
 Packages dans 'requirements.txt'
 <pre> pip install -r requirements.txt </pre>

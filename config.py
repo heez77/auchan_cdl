@@ -8,6 +8,6 @@ class CFG:
     path_labels = os.path.join(path,'labels_en_fr.csv')
     path_bert = os.path.join(path, "Entrainement", "CamemBERT")
     path_det = os.path.join(path, "Entrainement", "eff_det")
-    threshold_clip = 1
-    threshold_dist = 0
+    threshold_clip = 0.9
+    threshold_dist = 0.1
     device = "cuda" if torch.cuda.is_available() else "cpu"
