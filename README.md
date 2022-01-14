@@ -158,11 +158,112 @@ learner = BertLearner.from_pretrained_model(
 
 <p> EfficientDet fonctionne sur le même principe que les modèles précédents, il faut d'abord créer un objet Python servant de référenceur de dataset puis un learner. Ici, le dataset est créé sur Python avec la fonction DatasetAdaptor qui se charge de faire le preprocessing des images et des annotations. </p>
 <pre>
-photo
+class DatasetAdaptor:
+    def __init__(self, images_dir_path, annotations_dataframe): 
+        self.images_dir_path = images_dir_path
+        self.annotations_df = annotations_dataframe
+        self.images = self.annotations_df.image.unique().tolist()
+
+    def __len__(self) -> int:
+        return len(self.images)
+    class_labels = []
+    def get_image_and_labels_by_idx(self, index):
+        image_name = self.images[index]
+        image = PIL.Image.open(self.images_dir_path + image_name)
+        pascal_bboxes = self.annotations_df[self.annotations_df.image == image_name][
+            ["xmin", "ymin", "xmax", "ymax"]
+        ].values # Récupération des rectangles 
+        class_labels = self.annotations_df[self.annotations_df.image == image_name][
+            ["class"]].values.tolist() # Récupération des labels pour chaque rectangle 
+        c_l = np.zeros(len(class_labels))
+        for i,cl in enumerate(class_labels):
+            c_l[i] = dico[cl[0]]
+
+        return image, pascal_bboxes, c_l, index
+    def dict_for_path(self):
+        dico={}
+        for index in range(len(self.images)):
+            image_name = self.images[index]
+            dico['image_{}.jpeg'.format(index)]=image_name
+        return dico
 </pre>
 <p> Ensuite, il faut créer un itérateur qui permet au learner d'accéder plus facilement aux données d'entraînement et de validation grâce à la fonction EfficientDetDataModule. </p>
 <pre>
-photo
+class EfficientDetDataModule(LightningDataModule):
+    
+    def __init__(self,
+                train_dataset_adaptor,
+                validation_dataset_adaptor,
+                train_transforms=get_train_transforms(target_img_size=512),
+                valid_transforms=get_valid_transforms(target_img_size=512),
+                num_workers=4,
+                batch_size=1):
+        
+        self.train_ds = train_dataset_adaptor
+        self.valid_ds = validation_dataset_adaptor
+        self.train_tfms = train_transforms
+        self.valid_tfms = valid_transforms
+        self.num_workers = num_workers
+        self.batch_size = batch_size
+        super().__init__()
+
+    def train_dataset(self) -> EfficientDetDataset:
+        return EfficientDetDataset(
+            dataset_adaptor=self.train_ds, transforms=self.train_tfms
+        )
+
+    def train_dataloader(self) -> DataLoader:
+        train_dataset = self.train_dataset()
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            drop_last=True,
+            num_workers=self.num_workers,
+            collate_fn=self.collate_fn,
+        )
+
+        return train_loader
+
+    def val_dataset(self) -> EfficientDetDataset:
+        return EfficientDetDataset(
+            dataset_adaptor=self.valid_ds, transforms=self.valid_tfms
+        )
+
+    def val_dataloader(self) -> DataLoader:
+        valid_dataset = self.val_dataset()
+        valid_loader = torch.utils.data.DataLoader(
+            valid_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            pin_memory=True,
+            drop_last=True,
+            num_workers=self.num_workers,
+            collate_fn=self.collate_fn,
+        )
+
+        return valid_loader
+    
+    @staticmethod
+    def collate_fn(batch):
+        images, targets, image_ids = tuple(zip(*batch))
+        images = torch.stack(images)
+        images = images.float()
+
+        boxes = [target["bboxes"].float() for target in targets]
+        labels = [target["labels"].float() for target in targets]
+        img_size = torch.tensor([target["img_size"] for target in targets]).float()
+        img_scale = torch.tensor([target["img_scale"] for target in targets]).float()
+
+        annotations = {
+            "bbox": boxes,
+            "cls": labels,
+            "img_size": img_size,
+            "img_scale": img_scale,
+        }
+
+        return images, annotations, targets, image_ids
 </pre>
 
 <p> On créer ensuite le modèle avec la fonction EfficientDetModel qui prend en argument le nombre de labels dans le dataset. </p>
@@ -170,9 +271,7 @@ photo
 photo
 </pre>
 <p> Pour entraîner, il faut créer un objet Trainer qui créer un environnement pour l'entraînement avec le nombre d'epochs et l'enregistrement des logs. </p>
-<pre>
-photo
-</pre>
+
 <p> En fournissant une liste de photos à l'algorithme, il renvoie un fichier csv comprenant le nom de l'image et si il a détecté un label ou non. Il est aussi possible de générer une nouvelle image avec les rectangles prédis par le modèle. </p>
 
 ## Entraînement des modèles :
