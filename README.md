@@ -38,7 +38,7 @@ Ci-dessous les requirements sur une machine locale.
 
 [Pytorch 1.8.0 ou plus + torchvision](https://pytorch.org/get-started/previous-versions/)
 <p> ou run </p>
-<pre> pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html' </pre>
+<pre>pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html'</pre>
 
 <p> (Windows seulement) Rust : https://www.rust-lang.org/tools/install </p>
 
@@ -64,7 +64,7 @@ EffDet
 </p>
 
 Packages dans 'requirements.txt'
-<pre> pip install -r requirements.txt </pre>
+<pre>pip install -r requirements.txt</pre>
 
 
 run:
@@ -311,10 +311,10 @@ En exécutant le script python3 entrainement_bio.py un nouveau modèle est entra
 
 #### Script d'exécution :
 
-<pre> python3 entrainement_camemBERT.py </pre>
+<pre>python3 entrainement_camemBERT.py</pre>
 
 Il est possible d'ajouter l'argument --tuning à cette ligne de commande qui est un booléen (True ou False) permettant de choisir de faire ou non du fine-tuning sur le modèle CamemBERT. Par défaut l'argument tuning est à False. Exemple :
-<pre> python3 entrainement_camemBERT.py --tuning True </pre>
+<pre>python3 entrainement_camemBERT.py --tuning True</pre>
 <p> Nouveau modèle sauvegardé dans le répertoire : 'PATH_TO_FOLDER/Model/Classification/'. (supprimer l'autre loss) </p>
 
 ## Tensorboard :
@@ -323,9 +323,9 @@ Pour chaque entraînement effectué, les logs des entraînements sont sauvegard�
 
 ### Ouverture de Tensorboard : 
 Si Tensoboard n'est pas installé, faire
-<pre> pip install tensorboard </pre>
+<pre>pip install tensorboard</pre>
 Puis entrer dans une ligne de commande Windows, après avoir activé l'environnement virtuel (s'il y en a un) :
-<pre> tensorboard --logdir 'PATH/TO/logs/fit' </pre>
+<pre>tensorboard --logdir 'PATH/TO/logs/fit'</pre>
 
 ### Ouverture de Tensorboard sous Visual Studio Code :
 <ol>
@@ -349,11 +349,11 @@ Une nouvelle page Tensorboard s'ouvre et nous pouvons voir des résultats :
 
 ### Prédiction classification - méthode des seuils
 
-run "prediction_classification.py"
+run "prediction_classification_comparaison.py"
 
 ### Prédiction classification - méthode "Dense"
 
-run "crea_csv_dense.py" puis "dense.py"
+run "prediction_classification.py"
 
 ### Prédiction object-detection
 
@@ -371,5 +371,5 @@ run "prediction_bio.py" ou "prediction_surgele.py"
 </p>
 
 <p> Pour lancer le custom jobs, il faut au préalable installer Cloud SDK et créer un package Python dans lequel est présent le code (dans un fichier task.py). Nous nous sommes cependant heurtés rapidement à des problèmes de permission. En particulier, pour récupérer les données des buckets, il faut installer la librairie Google-cloud-storage et utiliser la fonction storage : </p>
-<pre> from google-cloud import storage </pre>
+<pre>from google-cloud import storage</pre>
 <p> Cependant, l'utilisation de ces fonctions nécessitent des droits que nous n'avions pas. </p>
