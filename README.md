@@ -236,7 +236,7 @@ Puis entrer dans une ligne de commande Windows, après avoir activé l'environne
 Une nouvelle page Tensorboard s'ouvre et nous pouvons voir des résultats :
 
 <p align="center">
-       <img src="https://logo-marque.com/wp-content/uploads/2021/02/Auchan-Logo-1983-2015.png" width="800"/>
+       <img src="https://cdn.discordapp.com/attachments/910086422889902100/931484866409795635/unknown.png" width="800"/>
 </p>
 
 <p> A gauche, nous avons accès à tous les entraînements par type de modèle (dossiers) puis par version en cochant ou décochant les cases. Il est ainsi possible de comparer diférentes versions d'un même modèle. Seul CLIP n'est pas disponible sur Tensorboard car il ne s'entraîne pas. </p>
@@ -246,9 +246,15 @@ Une nouvelle page Tensorboard s'ouvre et nous pouvons voir des résultats :
 
 ### Prédiction classification - méthode des seuils
 
+run "prediction_classification.py"
+
 ### Prédiction classification - méthode "Dense"
 
+run "crea_csv_dense.py" puis "dense.py"
+
 ### Prédiction object-detection
+
+run "prediction_bio.py" ou "prediction_surgele.py"
 
 ## GCP :
 
