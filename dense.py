@@ -11,16 +11,10 @@ import numpy as np
 class DenseModel(nn.Module):
     def __init__(self):
         super(DenseModel, self).__init__()
-        self.dense1 = nn.Linear(158, 256)  # equivalent to Dense in keras
-        self.dense2 = nn.Linear(256,128)
-        self.dense3 = nn.Linear(128, 79)
-        self.dropout = nn.Dropout(p=0.2)
+        self.dense = nn.Linear(158, 79)  # equivalent to Dense in keras
 
     def forward(self, x):
-        x = F.relu(self.dense1(x))
-        x = F.relu(self.dense2(x))
-        x = self.dropout(x)
-        x = F.softmax(self.dense3(x), dim=0)
+        x = F.softmax(self.dense(x), dim=0)
         return x
 
 model = DenseModel()
@@ -66,19 +60,17 @@ x = X_train
 y = y_train
 
 # train
+# criterion = CustomLoss()
+# optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+# for epoch in tqdm(range(5000)):
+#     y_pred = model(x.float())
+#     loss = criterion(y_pred, y)
+#     optimizer.zero_grad()
+#     loss.backward()
+#     optimizer.step()
+# torch.save(model.state_dict(), os.path.join(os.getcwd(), "DenseModelCustomSimple.pth"))
 
-criterion = CustomLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-for epoch in tqdm(range(5000)):
-    y_pred = model(x.float())
-    loss = criterion(y_pred, y)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-# torch.save(model.state_dict(), os.path.join(os.getcwd(), "DenseModelCustom.pth"))
-
-model.load_state_dict(torch.load(os.path.join(os.getcwd(), "DenseModelCustom.pth")))
+model.load_state_dict(torch.load(os.path.join(os.getcwd(), "DenseModelCustomSimple.pth")))
 
 df3 = pd.read_csv(os.path.join(CFG.path, "dense_test.csv"), index_col=False)
 del df3['image']
