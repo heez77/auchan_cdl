@@ -1,5 +1,3 @@
-from os.path import dirname, abspath
-import sys
 import torch
 import clip
 from PIL import Image
@@ -15,6 +13,10 @@ warnings. simplefilter(action='ignore', category=Warning)
 import argparse
 import glob
 from datetime import datetime
+import torch.nn as nn
+import torch.nn.functional as F
+from dense import DenseModel
+
 
 #######################################################################################################################
 #                     Script d'execution pour la prédiction de la classification des produits.                        #
@@ -95,21 +97,30 @@ def get_clip(image, df_label, model, preprocess):
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
     print('Prédictions CamemBERT :')
     list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(), version) #Prédictions CamemBERT
+    labels = df_label.en.tolist()
+    scores_bert =[]
+    scores_clip=[]
+    for pred in list_label_dist:
+        scores_bert_p = np.zeros(len(labels))
+        for p in pred:
+            scores_bert_p[labels.index(df_label[df_label.fr==p[0]].en.values[0])] = p[1]
+        scores_bert.append(list(scores_bert_p))
     print('Prédictions CLIP :')
     result = []
     model, preprocess = clip.load("ViT-B/32", device=CFG.device) #Chargement du modèle CLIP
     for i in tqdm(range(len(df))): #On boucle sur tous les produits à classifier 
         label_clip, score_clip = get_clip(df.image.iloc[i], df_label, model, preprocess) #Prédiction CLIP pour une image
-        if list_label_dist[i].lower() == df_label[df_label['en']==label_clip].fr.values[0].lower(): #Comparaison CLIP et CamemBERT
-            result.append(df_label[df_label['en']==label_clip].fr.values[0].lower())
-        else:
-            if score_clip > threshold_clip and list_score_dist[i] < threshold_dist :
-                result.append(df_label[df_label['en']==label_clip].fr.values[0].lower())
-            elif score_clip < threshold_clip and list_score_dist[i] > threshold_dist :
-                result.append(list_label_dist[i])
-            else:
-                # Vérification humaine (API)
-                result.append('Need Human Verif')
+        scores_clip.append(score_clip)
+
+    input = np.array([scores_clip[i] + scores_bert[i] for i in range(len(scores_clip))])
+    dense = DenseModel()
+    dense.load_state_dict(torch.load(os.path.join(CFG.path_models,'Dense'))) #Chargement du modèle dense
+    res = dense.predict(input) # Prédictions couche dense
+    result = []
+    for r in res:
+        idx = r.index(max(r))
+        result.append(labels[idx])
+
     df['resultats'] = result
     return df #Renvoie la dataframe avec les résultas
 
