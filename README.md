@@ -8,7 +8,19 @@ Le projet Auchan réalisé en collaboration avec Digital Lab a pour but de propo
 
 ## La structure du dépôt GitHub
 
-Ce dépôt GitHub recense le livrable final sans les données fournies par Auchan, en y accompagnant le processus d'installation sur une machine locale. (voir création d'une image Docker pour l'implémentation dans GCP).
+<p> Ce dépôt GitHub recense le livrable final sans les données fournies par Auchan, en y accompagnant le processus d'installation sur une machine locale. (voir création d'une image Docker pour l'implémentation dans GCP). </p>
+<p> Les configurations globales du code se trouvent dans le script "config.py". Les données sont placées dans les dossiers suivants : </p>
+<pre>
+> Data
+  > Entrainement_bio
+  > Entrainement_camemBERT
+  > Entrainement_Dense
+  > Entrainement_surgele
+  > Predictions_bio
+  > Predictions_classification
+  > Predictions_surgele
+</pre>
+<p> Le dossier "Data" peut-être déplacé mais doit être reconfiguré dans le script "config.py". </p>
 
 ## Framework
 
