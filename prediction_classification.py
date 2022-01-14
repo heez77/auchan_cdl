@@ -15,7 +15,6 @@ import glob
 from datetime import datetime
 import torch.nn as nn
 import torch.nn.functional as F
-from dense import DenseModel
 
 
 #######################################################################################################################
@@ -36,7 +35,14 @@ parser.add_argument('--version', type=int,
                     help='an integer for the version')
 old_version = vars(parser.parse_args())['version']
 
+class DenseModel(nn.Module):
+    def __init__(self):
+        super(DenseModel, self).__init__()
+        self.dense = nn.Linear(158, 79)  # equivalent to Dense in keras
 
+    def forward(self, x):
+        x = F.softmax(self.dense(x), dim=0)
+        return x
 
 #          Prédiction à partir d'une image avec CLIP
 
@@ -47,8 +53,7 @@ def simple_CLIP(image_path, labels, model, preprocess):
     with torch.no_grad():
         logits_per_image, _ = model(image, text) #Prédiction
         prediction = logits_per_image.softmax(dim=-1).cpu().numpy() #Analyse de la prédiction
-    max_index = np.argmax(prediction) #Récupération du meilleur score
-    return (labels[max_index], prediction[0][max_index]) #Renvoie de la meilleure prédiction et de son score
+    return (prediction[0]) #Renvoie de la meilleure prédiction et de son score
 
 #         Prédiction à partir d'une description avec CamemBERT
 
@@ -82,44 +87,44 @@ def get_dist_batch(texts, version_BERT):
         device=None)
     for text in tqdm(texts):
         prediction.append(predictor.predict(text))
-    preds = [p[0][0] for p in prediction]
-    scores = [p[0][1] for p in prediction]
-    return preds, scores # Renvoie la liste des meilleurs prédictions et leurs scores
+    return prediction # Renvoie la liste des meilleurs prédictions et leurs scores
 
 #           Fonction pour éffectuer la prédiction CLIP
 
 def get_clip(image, df_label, model, preprocess):
-    label_clip, score_clip = simple_CLIP(os.path.join(CFG.path_data, 'Predictions_classification', image), df_label.en, model, preprocess)
-    return label_clip, score_clip
-
+    predictions = simple_CLIP(os.path.join(CFG.path_data, 'Predictions_classification', image), df_label.en, model, preprocess)
+    return predictions
 #          Fonction qui récupère les données effectue les prédictions et écrit un DataFrame avec les résultats
 
 def write_csv(df, df_label, threshold_clip, threshold_dist, version):
     print('Prédictions CamemBERT :')
-    list_label_dist, list_score_dist = get_dist_batch(df.description.tolist(), version) #Prédictions CamemBERT
-    labels = df_label.en.tolist()
+    list_label_dist = get_dist_batch(df.description.tolist(), version) #Prédictions CamemBERT
+    df_l = pd.read_csv(CFG.path_labels)
+    labels = df_l.en.tolist()
     scores_bert =[]
     scores_clip=[]
     for pred in list_label_dist:
         scores_bert_p = np.zeros(len(labels))
         for p in pred:
-            scores_bert_p[labels.index(df_label[df_label.fr==p[0]].en.values[0])] = p[1]
+            scores_bert_p[labels.index(df_l[df_l.fr==p[0]].en.values[0])] = p[1]
         scores_bert.append(list(scores_bert_p))
     print('Prédictions CLIP :')
     result = []
     model, preprocess = clip.load("ViT-B/32", device=CFG.device) #Chargement du modèle CLIP
     for i in tqdm(range(len(df))): #On boucle sur tous les produits à classifier 
-        label_clip, score_clip = get_clip(df.image.iloc[i], df_label, model, preprocess) #Prédiction CLIP pour une image
-        scores_clip.append(score_clip)
+        predictions_clip = get_clip(df.image.iloc[i], df_label, model, preprocess) #Prédiction CLIP pour une image
+        scores_clip.append(predictions_clip)
 
-    input = np.array([scores_clip[i] + scores_bert[i] for i in range(len(scores_clip))])
+    input = np.array([list(scores_clip[i]) + list(scores_bert[i]) for i in range(len(scores_clip))])
     dense = DenseModel()
-    dense.load_state_dict(torch.load(os.path.join(CFG.path_models,'Dense'))) #Chargement du modèle dense
-    res = dense.predict(input) # Prédictions couche dense
+    model_name = os.listdir(os.path.join(CFG.path_models, 'Dense'))[0]
+    dense.load_state_dict(torch.load(os.path.join(CFG.path_models, 'Dense', model_name))) #Chargement du modèle dense
+    res = dense(torch.tensor(input).float()) # Prédictions couche dense
     result = []
     for r in res:
+        r = list(r)
         idx = r.index(max(r))
-        result.append(labels[idx])
+        result.append(df_l.fr.iloc[idx])
 
     df['resultats'] = result
     return df #Renvoie la dataframe avec les résultas
@@ -165,12 +170,12 @@ def main():
     date = now.strftime("%m-%d-%Y_%H%M%S")  #Récupération de la date de prédiction
     df.to_csv(os.path.join(CFG.path, 'Resultats', 'Classification', 'resultat_classification_{}.csv'.format(date)), index=False) #Enregistrement en csv 
     # sous le format resultat_classification_DateDePrediction.csv
-
+"""
     #---Supression données de prédictions---#
     os.remove(csv)
     for image in images:
         os.remove(image)
     #---------------------------------------#
-
+"""
 if __name__=='__main__':
     main()
