@@ -54,7 +54,7 @@ pip install git+https://github.com/openai/CLIP.git
 
 EffDet
 
-Télécharger [Visual Studio Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+(Windows seulement) Télécharger [Visual Studio Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 <p> Cocher les cases suivantes et installer:
 </p>
 <p align="center">
