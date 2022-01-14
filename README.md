@@ -24,7 +24,9 @@ Le projet Auchan réalisé en collaboration avec Digital Lab a pour but de propo
 
 ## Framework
 
-à venir
+<p align="center">
+       <img src="https://cdn.discordapp.com/attachments/910086422889902100/931549451468816384/Screenshot_from_2022-01-14_15-04-28.png" width="800"/>
+</p>
 
 ## Requirements
 
@@ -271,9 +273,7 @@ class EfficientDetDataModule(LightningDataModule):
 </pre>
 
 <p> On créer ensuite le modèle avec la fonction EfficientDetModel qui prend en argument le nombre de labels dans le dataset. </p>
-<pre>
-photo
-</pre>
+
 <p> Pour entraîner, il faut créer un objet Trainer qui créer un environnement pour l'entraînement avec le nombre d'epochs et l'enregistrement des logs. </p>
 
 <p> En fournissant une liste de photos à l'algorithme, il renvoie un fichier csv comprenant le nom de l'image et si il a détecté un label ou non. Il est aussi possible de générer une nouvelle image avec les rectangles prédis par le modèle. </p>
@@ -292,7 +292,7 @@ Les démarches pour le surgelé et le bio sont identiques, nous ne traiterons qu
 liste des labels pour les produits bios :
 
 <p> La variable labels peut être modifié en fonction des labels identifiés. </p>
-<pre> capture ecran variable labels </pre>
+<pre>dico = {'Logo AB':1, 'Logo EU':2, 'Bio':3}</pre>
 
 L'algorithme [EfficientDet](https://github.com/xuannianz/EfficientDet) fonctionne avec des annotations sous forme de fichier csv. Un fichier annotation est présent pour chaque produit qui comporte les coordonnnées du rectangle (x1, x2, y1, y2) de la bouding box et le nom du label correspondant sous format [Pascal VOC](https://towardsdatascience.com/coco-data-format-for-object-detection-a4c5eaf518c5). Comme beaucoup de logiciels d'annotations d'images ne renvoient pas les annotations sous format csv mais sous format xml, la fonction convert_xml convertit tous les fichiers xml en fichiers csv.
 <p> Il faut fournir au modèle l'ensemble des images des produits et les annotations sous format xml dans le répertoire '/PATH_TO_FOLDER/Donnees/Entrainement_Bio/' </p>
@@ -307,7 +307,7 @@ En exécutant le script python3 entrainement_bio.py un nouveau modèle est entra
 
 <p> CamemBERT s'entraîne uniquement sur des données textuelles, nous allons lui fournir les descriptions fournisseurs et produits ainsi que le label correspondant. Il n'est pas nécessaire de fournir la liste des labels le modèle va uniquement s'entrainer sur les données présentes dans le dataset. </p>
 <p> Format du dataset d'entrée : csv </p>
-<p> Colonnes : A remplir </p>
+<p> Colonnes : image, label, description_fournisseur, description_produit </p>
 
 #### Script d'exécution :
 
@@ -325,7 +325,7 @@ Pour chaque entraînement effectué, les logs des entraînements sont sauvegard�
 Si Tensoboard n'est pas installé, faire
 <pre> pip install tensorboard </pre>
 Puis entrer dans une ligne de commande Windows, après avoir activé l'environnement virtuel (s'il y en a un) :
-<pre>  tensorboard --logdir 'PATH/TO/logs/fit' </pre>
+<pre> tensorboard --logdir 'PATH/TO/logs/fit' </pre>
 
 ### Ouverture de Tensorboard sous Visual Studio Code :
 <ol>
