@@ -22,11 +22,175 @@ from config import CFG
 from tqdm import tqdm
 import warnings
 warnings. simplefilter(action='ignore', category=Warning)
+from tensorboardX import SummaryWriter
+from fastprogress.fastprogress import master_bar, progress_bar
+
 
 #######################################################################################################################
 #                      Script avec toutes les fonctions servant à l'entrainement de camemBERT.                        #
 #######################################################################################################################
 
+#---------------------------------------------------------------------------------------------------------------------#
+# Modification de la classe proposée par fast-bert en rajoutant le renvoie du scheduler après un fit pour faire une sauvegarde manuelle du modèle 
+
+class Learner(BertLearner):
+    def __init__():
+        super().__init__()
+    def fit(
+        self,
+        epochs,
+        lr,
+        validate=True,
+        return_results=False,
+        schedule_type="warmup_cosine",
+        optimizer_type="lamb",
+    ):
+        results_val = []
+        tensorboard_dir = self.output_dir / "tensorboard"
+        tensorboard_dir.mkdir(exist_ok=True)
+
+        # Train the model
+        tb_writer = SummaryWriter(tensorboard_dir)
+
+        train_dataloader = self.data.train_dl
+        if self.max_steps > 0:
+            t_total = self.max_steps
+            self.epochs = (
+                self.max_steps // len(train_dataloader) // self.grad_accumulation_steps
+                + 1
+            )
+        else:
+            t_total = len(train_dataloader) // self.grad_accumulation_steps * epochs
+
+        # Prepare optimiser
+        optimizer = self.get_optimizer(lr, optimizer_type=optimizer_type)
+
+        # get the base model if its already wrapped around DataParallel
+        if hasattr(self.model, "module"):
+            self.model = self.model.module
+
+        # Get scheduler
+        scheduler = self.get_scheduler(
+            optimizer, t_total=t_total, schedule_type=schedule_type
+        )
+
+        # Parallelize the model architecture
+        if self.multi_gpu is True:
+            self.model = torch.nn.DataParallel(self.model)
+
+        # Start Training
+        self.logger.info("***** Running training *****")
+        self.logger.info("  Num examples = %d", len(train_dataloader.dataset))
+        self.logger.info("  Num Epochs = %d", epochs)
+        self.logger.info(
+            "  Total train batch size (w. parallel, distributed & accumulation) = %d",
+            self.data.train_batch_size * self.grad_accumulation_steps,
+        )
+        self.logger.info(
+            "  Gradient Accumulation steps = %d", self.grad_accumulation_steps
+        )
+        self.logger.info("  Total optimization steps = %d", t_total)
+
+        global_step = 0
+        epoch_step = 0
+        tr_loss, logging_loss, epoch_loss = 0.0, 0.0, 0.0
+        self.model.zero_grad()
+        pbar = master_bar(range(epochs))
+
+        for epoch in pbar:
+            epoch_step = 0
+            epoch_loss = 0.0
+            for step, batch in enumerate(progress_bar(train_dataloader, parent=pbar)):
+                # Run training step and get loss
+                loss = self.training_step(batch)
+
+                tr_loss += loss.item()
+                epoch_loss += loss.item()
+                if (step + 1) % self.grad_accumulation_steps == 0:
+                    # gradient clipping
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), self.max_grad_norm
+                    )
+                    if self.is_fp16:
+                        # AMP: gradients need unscaling
+                        self.scaler.unscale_(optimizer)
+
+                    if self.is_fp16:
+                        self.scaler.step(optimizer)
+                        self.scaler.update()
+                    else:
+                        optimizer.step()
+                    scheduler.step()
+
+                    self.model.zero_grad()
+                    global_step += 1
+                    epoch_step += 1
+
+                    if self.logging_steps > 0 and global_step % self.logging_steps == 0:
+                        if validate:
+                            # evaluate model
+                            results = self.validate()
+                            for key, value in results.items():
+                                tb_writer.add_scalar(
+                                    "eval_{}".format(key), value, global_step
+                                )
+                                self.logger.info(
+                                    "eval_{} after step {}: {}: ".format(
+                                        key, global_step, value
+                                    )
+                                )
+
+                        # Log metrics
+                        self.logger.info(
+                            "lr after step {}: {}".format(
+                                global_step, scheduler.get_lr()[0]
+                            )
+                        )
+                        self.logger.info(
+                            "train_loss after step {}: {}".format(
+                                global_step,
+                                (tr_loss - logging_loss) / self.logging_steps,
+                            )
+                        )
+                        tb_writer.add_scalar("lr", scheduler.get_lr()[0], global_step)
+                        tb_writer.add_scalar(
+                            "loss",
+                            (tr_loss - logging_loss) / self.logging_steps,
+                            global_step,
+                        )
+
+                        logging_loss = tr_loss
+
+            # Evaluate the model against validation set after every epoch
+            if validate:
+                results = self.validate()
+                for key, value in results.items():
+                    self.logger.info(
+                        "eval_{} after epoch {}: {}: ".format(key, (epoch + 1), value)
+                    )
+                results_val.append(results)
+
+            # Log metrics
+            self.logger.info(
+                "lr after epoch {}: {}".format((epoch + 1), scheduler.get_lr()[0])
+            )
+            self.logger.info(
+                "train_loss after epoch {}: {}".format(
+                    (epoch + 1), epoch_loss / epoch_step
+                )
+            )
+            self.logger.info("\n")
+
+        tb_writer.close()
+
+        if return_results:
+            return global_step, tr_loss / global_step, results_val, scheduler #Modification ici
+        else:
+            return global_step, tr_loss / global_step, scheduler # Modification ici 
+
+
+
+#---------------------------------------------------------------------------------------------------------------------#
 
 #       Mots et caractères à supprimer des données d'entrées
 
@@ -185,7 +349,7 @@ def model(tuning):
                           label_file='labels.csv',
                           text_col='text', # Nom de la colonne avec les descriptions
                           label_col=labels, # Labels
-                          batch_size_per_gpu=4,
+                          batch_size_per_gpu=2,
                           max_seq_length=512, # Taille max d'une description
                           multi_gpu=False,
                           multi_label=True,
@@ -194,7 +358,7 @@ def model(tuning):
     device_cuda = torch.device("cuda") #Utilisation de la carte graphique 
 
     metrics = [{'name': 'Exact_Match_Ratio', 'function': Exact_Match_Ratio}] # Choix de la métrique pour le calcule de la précision du modèle 
-    learner = BertLearner.from_pretrained_model( # Création du classifieur 
+    learner = Learner.from_pretrained_model( # Création du classifieur 
 						databunch, # Data
 						pretrained_path=MODEL_PATH, # Chemin vers le modèle camemBERT fine tuned
 						metrics=metrics, # Métriques
